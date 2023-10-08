@@ -3,7 +3,7 @@ import logging
 
 from loader import db, dp, bot
 
-from core.handlers import basic_handler, report_handler, callbacks, excel_handler
+from core.handlers import basic_handler, report_handler, callbacks, excel_handler, admin_handler
 from core.utils import commands
 
 
@@ -14,7 +14,8 @@ async def main():
         basic_handler.router,
         report_handler.router,
         callbacks.router,
-        excel_handler.router
+        excel_handler.router,
+        admin_handler.router
     )
     
     db.create_tables_or_get_exists()
