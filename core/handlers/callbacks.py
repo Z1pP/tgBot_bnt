@@ -1,11 +1,11 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from core.keyboards.reply import default_keyboard
 from core.states.states_form import ReportState
 from .report_handler import save_report, create_report, get_report_by_date_from_db, check_report_is_correct
-from loader import db
+from loader import db, dp
 
 
 router = Router()
@@ -69,7 +69,7 @@ async def date_callback(query: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.startswith('id_'))
-async def id_callback(query: CallbackQuery) -> None:
+async def id_callback(query: CallbackQuery, bot: Bot) -> None:
     manager_id = query.data.split('_')[-1]
     # Получени данных о выбранном менеджере
     manager = db.get_manager_to_id(manager_id)
@@ -77,8 +77,10 @@ async def id_callback(query: CallbackQuery) -> None:
     current_role = manager[0][3]
     try:
         new_role = db.change_manager_role(id = manager_id, current_role=current_role)
-        await query.message.answer(f'Роль пользователя {manager_name} изменена на {new_role}.' +
-                                   'Пользователю необходимо перезапустить бот командой /start')
+        await query.message.answer(f'Роль пользователя {manager_name} изменена на {new_role}.')
+
+        await bot.send_message(chat_id= manager_id, 
+                               text=f'Администратор {dp.manager.name} изменил вашу роль на {new_role}')
     except Exception as e:
         await query.answer(f"Произошла ошибка: {str(e)}")
 
