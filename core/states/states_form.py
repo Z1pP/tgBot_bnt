@@ -8,4 +8,8 @@ class ReportState(StatesGroup):
     margin = State()
     revenue = State()
     nds = State()
-    is_correct = State()
+
+
+class Registration(StatesGroup):
+    name = State()
+

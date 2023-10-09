@@ -6,7 +6,8 @@ from aiogram.fsm.context import FSMContext
 from core.states.states_form import ReportState
 from core.keyboards.inline import get_keyboard
 from core.keyboards.inline_date import get_keyboard_date
-
+from core.keyboards.reply import reply_keyboard_manager
+from core.filters.admin_filter import IsSuperManager
 from loader import db, dp
 
 router = Router()
@@ -21,7 +22,7 @@ async def start_create_report(message:Message) -> None:
 async def create_report(message: Message, state: FSMContext) -> None:
     await state.update_data(manager = dp.manager)
     
-    await message.answer('Введите количество заказов:')
+    await message.answer('Введите количество обработанных запросов:')
     await state.set_state(ReportState.orders)
 
 
@@ -30,13 +31,15 @@ async def create_report(message: Message, state: FSMContext) -> None:
 async def get_orders(message: Message, state: FSMContext) -> None:
     await state.update_data(orders = message.text)
 
-    await message.answer('Введите количество обработанных заказов:')
+    await message.answer('Введите количество выставленных счетов:')
     await state.set_state(ReportState.invoices)
 
 
 @router.message(StateFilter(ReportState.orders))
 async def orders_not_digit(message: Message) -> None:
-    await message.answer('Написана хрень 1')
+    await message.answer('⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n' +
+                         'Возможно вы ввели отрицательное число...\n' +
+                         'Введите количество обработанных запросов:')
 
 
 @router.message(StateFilter(ReportState.invoices),
@@ -50,10 +53,13 @@ async def get_invoices(message: Message, state: FSMContext) -> None:
 
 @router.message(StateFilter(ReportState.invoices))
 async def invoices_not_digit(message: Message) -> None:
-    await message.answer('Написана хрень 2')
+    await message.answer('⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n' +
+                         'Возможно вы ввели отрицательное число...\n' +
+                         'Введите количество выставленных счетов:')
 
 
-@router.message(ReportState.paid, F.text)
+@router.message(StateFilter(ReportState.paid),
+                lambda x: x.text.isdigit() and 0 <= int(x.text) <= 50)
 async def get_payments(message: Message, state: FSMContext) -> None:
     await state.update_data(paid = message.text)
 
@@ -61,12 +67,27 @@ async def get_payments(message: Message, state: FSMContext) -> None:
     await state.set_state(ReportState.margin)
 
 
-@router.message(ReportState.margin, F.text)
+@router.message(StateFilter(ReportState.paid))
+async def paid_not_digit(message: Message) -> None:
+    await message.answer('⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n' +
+                         'Возможно вы ввели отрицательное число...\n' +
+                         'Введите количество оплаченных заказов:')
+    
+
+@router.message(StateFilter(ReportState.margin), 
+                lambda x: (x.text.isdigit() or x.text.isnumeric()) and int(x.text) >= 0)
 async def get_margine(message: Message, state: FSMContext) -> None:
     await state.update_data(margin = message.text)
 
     await message.answer('Укажите полученную выручку:')
     await state.set_state(ReportState.revenue)
+
+
+@router.message(StateFilter(ReportState.margin))
+async def margin_not_digit_and_not_less_zero(message: Message) -> None:
+    await message.answer('⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n' +
+                         'Возможно вы ввели отрицательное число...\n' +
+                         'Введите корректно маржу:')
 
 
 @router.message(ReportState.revenue, F.text)
@@ -90,9 +111,9 @@ async def check_report_is_correct(message: Message, state: FSMContext) -> None:
     data_state = await state.get_data()
 
     answer_text = f'''
-    Заказов пришло - {data_state['orders']},
-    Заказов обработанных - {data_state['invoices']},
-    Заказов оплаченных - {data_state['paid']},
+    Заказов обработанно - {data_state['orders']},
+    Счетов выставленно - {data_state['invoices']},
+    Заказов оплаченно - {data_state['paid']},
     Маржа - {data_state['margin']},
     Полученная выручка - {data_state['revenue']},
     НДС - {data_state['nds']}'''
@@ -108,11 +129,14 @@ async def save_report(message: Message) -> None:
     #Сохранение отчета в базу данных
     db.add_report_to_db(report=report)
 
-    text = 'Окей, ваш отчет успешно занесен в таблицу!'
-    await message.answer(text)
+    text = '''
+    ✅ Отлично, ваш отчет успешно сохранен!
+    Он добавлен в базу данных для формирования недельного отчета'''
+    
+    await message.answer(text, reply_markup= reply_keyboard_manager(manager=dp.manager))
 
 
-@router.message(F.text == '📁 Список отчетов')
+@router.message(F.text == '📁 Полный список отчетов', IsSuperManager())
 async def get_report_list(message: Message):
     #Получение всех отчетов из базы данных
     report_list = db.get_report_list()
@@ -132,7 +156,7 @@ async def get_report_list(message: Message):
                          + '\n\n'.join(answer))
 
 
-@router.message(F.text == '📅 Получить отчёты по дате')
+@router.message(F.text == '📅 Получить отчёты по дате', IsSuperManager())
 async def get_report_by_date(message: Message):
     await message.answer('Введите дату:',
                          reply_markup=get_keyboard_date())

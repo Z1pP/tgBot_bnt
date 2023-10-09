@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 class Report:
     def __init__(self, manager, orders, invoices, paid, margin, revenue, nds) -> None:
         self.date = datetime.now().strftime('%d.%m.%Y')

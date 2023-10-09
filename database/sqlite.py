@@ -24,7 +24,7 @@ class DataBase:
                         markup_percentage REAL)""")
             
         self._cursor.execute("""CREATE TABLE IF NOT EXISTS managers 
-                        (id TEXT PRIMARY KEY, name TEXT, role TEXT)""")
+                        (id TEXT PRIMARY KEY, nickname TEXT, name TEXT, role TEXT)""")
 
         self._connection.commit()
         
@@ -55,9 +55,9 @@ class DataBase:
             
             
     def add_managers_to_db(self, manager):
-        role = manager.__class__.__name__
-        self._cursor.execute(f"""INSERT INTO managers (id, name, role) 
-                        VALUES ('{manager.id}', '{manager.name}', '{str(role)}')""")
+        self._cursor.execute(f"""INSERT INTO managers (id,nickname, name, role) 
+                        VALUES ('{manager.id}','{manager.nickname}',
+                                '{manager.name}', '{manager.role}')""")
         self._connection.commit()
             
 
@@ -84,3 +84,13 @@ class DataBase:
         self._cursor.execute("""SELECT DISTINCT date FROM reports""")
         return self._cursor.fetchall()
     
+    def change_manager_role(self, id, current_role: str)-> str:
+        if current_role == 'SuperManager':
+            self._cursor.execute(f"""UPDATE managers SET role = 'Manager' WHERE id == '{id}'""")
+            self._connection.commit()
+            return 'Manager'
+        
+        self._cursor.execute(f"""UPDATE managers SET role = 'SuperManager' WHERE id == '{id}'""")
+        self._connection.commit()
+        return 'SuperManager'
+            
