@@ -7,6 +7,7 @@ from database.excel import create_excel
 
 router = Router()
 
+# Обработка команды связанных с excel
 @router.message(F.text == '📝 Получить отчеты в Excel файле', IsSuperManager())
 async def get_report_in_excel(message: Message, bot: Bot):
     file = create_excel(filename='excel.xlsx')
