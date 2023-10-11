@@ -3,12 +3,11 @@ from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-from core.filters.admin_filter import IsAdmin, IsSuperManager
+from core.filters.admin_filter import IsAdmin
 from loader import db, dp
 
 router = Router()
 
-@router.message(IsSuperManager())
 @router.message(F.text == '👤 Выдать/Забрать админ-права',IsAdmin())
 async def give_admin_root(message: Message):
     managers = db.get_managers()
@@ -30,7 +29,6 @@ async def give_admin_root(message: Message):
                                                    one_time_keyboard=True))
 
 
-@router.message(~IsSuperManager())
 @router.message(F.text == '👤 Выдать/Забрать админ-права',~IsAdmin())
 async def no_rights(message: Message):
     await message.answer('У вас нет прав администратора сервера!')

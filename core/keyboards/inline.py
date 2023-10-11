@@ -19,10 +19,11 @@ keyboard_for_nds = [
     InlineKeyboardButton(text= 'Нет', callback_data='nds_no')
 ]
 
-keyboard = {'check_report': keyboard_to_creater_report,
-            'filling_form': keyboard_for_filling_from,
-            'nds': keyboard_for_nds
-                 }
+keyboard = {
+    'check_report': keyboard_to_creater_report,
+    'filling_form': keyboard_for_filling_from,
+    'nds': keyboard_for_nds
+}
 
 
 def get_keyboard(key: str) -> InlineKeyboardMarkup:
