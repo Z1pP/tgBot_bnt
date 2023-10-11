@@ -6,6 +6,7 @@ def get_user_keyboard() -> ReplyKeyboardMarkup:
     keyboard = ReplyKeyboardBuilder()
 
     keyboard.add(KeyboardButton(text='📑 Сформировать отчёт'))
+    keyboard.add(KeyboardButton(text='🖊 Изменить имя'))
     keyboard.adjust(1)
     return keyboard.as_markup(
         resize_keyboard=True,
@@ -17,6 +18,7 @@ def get_user_keyboard() -> ReplyKeyboardMarkup:
 def get_admin_keyboard() -> ReplyKeyboardMarkup:
     keyboard = ReplyKeyboardBuilder()
 
+    keyboard.add(KeyboardButton(text='🖊 Изменить имя'))
     keyboard.add(KeyboardButton(text='📑 Сформировать отчёт'))
     keyboard.add(KeyboardButton(text='📁 Полный список отчетов'))
     keyboard.add(KeyboardButton(text='📅 Получить отчёты по дате'))
