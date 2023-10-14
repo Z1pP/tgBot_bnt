@@ -14,13 +14,13 @@ from core.utils import commands
 
 
 async def check_report_status() -> None:
-    start_time = datetime.now().replace(hour=18, minute=0, second=0, microsecond=0)
+    start_time = datetime.now().replace(hour=17, minute=0, second=0, microsecond=0)
     end_time = datetime.now().replace(hour=23, minute=0, second=0, microsecond=0)
 
     while True:
         # Проверка чтобы бот не писал с 18.00 до 2300
         if not start_time <= datetime.now() <= end_time:
-            await asyncio.sleep(3600)
+            await asyncio.sleep(1800)
             continue
 
         current_date = datetime.now().strftime('%d.%m.%Y')
@@ -30,7 +30,7 @@ async def check_report_status() -> None:
 
         # Две проверки на наличие менеджеров и отчетов
         if not managers:
-            await asyncio.sleep(3600)
+            await asyncio.sleep(1800)
             continue
         if not report_list:
             for manager in managers:
@@ -38,7 +38,7 @@ async def check_report_status() -> None:
                     chat_id=manager[0],
                     text=f'Напоминаю, что вам необходимо сделать отчет за {current_date}!'
                 )
-            await asyncio.sleep(3600)
+            await asyncio.sleep(1800)
             continue
         
         # Проверка что менеджер отправил отчет за текущий день
@@ -50,10 +50,10 @@ async def check_report_status() -> None:
                             chat_id=manager[0],
                             text=f'Напоминаю, что вам необходимо сделать отчет за {current_date}!'
                         )
+                        await asyncio.sleep(1800) 
         except Exception as e:
             logging.error(f'Error: {str(e)}')
 
-        await asyncio.sleep(3600)  # Ожидание перед следующей итерацией
 
 
 async def main():

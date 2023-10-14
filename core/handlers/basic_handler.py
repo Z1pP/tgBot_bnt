@@ -1,6 +1,6 @@
 import random
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 
@@ -29,7 +29,8 @@ async def start(message: Message, state: FSMContext) -> None:
                              reply_markup=default_keyboard)
     else:
         await message.answer('Привет новый пользователь,я бот для отчетов.\n' +
-                             'Для продолжения работы необходимо ввести свое имя:')
+                             'Для продолжения работы необходимо ввести свое имя:',
+                             reply_markup= ReplyKeyboardRemove())
         await state.set_state(Registration.name)
 
 
@@ -41,7 +42,7 @@ async def work_menu(message: Message) -> None:
     user = db.get_manager_to_id(id=tg_id)
 
     if not user:
-        manager = Manager(name=register_name, nickname=tg_name, id=tg_id)
+        manager = Manager(name=dp.name, nickname=tg_name, id=tg_id)
         db.add_managers_to_db(manager=manager)
     else:
         manager_role = user[0][3]
@@ -52,9 +53,10 @@ async def work_menu(message: Message) -> None:
         else:
             manager = SuperManager(name=name, nickname=tg_name, id=tg_id)
 
+    # Глобальная переменная менеджера
     dp.manager = manager
-    await message.answer(f'Отлично {manager.name}, теперь я готов к работе!',
-                         reply_markup=reply_keyboard_manager(manager))
+    await message.answer(f'Отлично {dp.manager.name}, теперь я готов к работе!',
+                         reply_markup=reply_keyboard_manager(dp.manager))
 
 
 @router.message(F.text == '🖊 Изменить имя')
@@ -73,18 +75,21 @@ async def get_random_number(message: Message) -> None:
 @router.message(StateFilter(Registration.name),
                 lambda x: x.text.isalpha() and (2 < len(x.text) <= 10))
 async def registration(message: Message, state: FSMContext) -> None:
-    global register_name
+    await state.clear()
+
     register_name = message.text.strip().capitalize()
 
     manager = db.get_manager_to_id(id=message.from_user.id)
-    manager_id = manager[0][0]
     if manager:
+        manager_id = manager[0][0]
         db.change_manager_name(new_name=register_name, id=manager_id)
 
-    await state.clear()
+    dp.name = register_name
     await message.answer(f'Привет {register_name}, я бот для отчетов.\n' +
                          'Для начала работы нажми внизу "Начать работу" ',
                          reply_markup=default_keyboard)
+        
+    
 
 
 @router.message(StateFilter(Registration.name))
