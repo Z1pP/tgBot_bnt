@@ -14,7 +14,7 @@ async def check_report_on_correct(query: CallbackQuery, state: FSMContext) -> No
     await query.answer()
     try:
         if 'yes' in query.data:
-            await save_report(query.message)
+            await save_report(query.message.chat)
         elif 'no' in query.data:
             await query.message.answer('Заполните форму заново!',
                                        reply_markup=default_keyboard)
@@ -30,7 +30,7 @@ async def conf_for_form(query: CallbackQuery, state: FSMContext) -> None:
     try:
         if 'yes' in query.data:
             await state.set_state(ReportState.manager)
-            await create_report(query.message, state)
+            await create_report(query.message.chat, state)
         elif 'no' in query.data:
             await query.message.answer('Заполенение формы отмененно!',
                                        reply_markup=default_keyboard)
@@ -46,7 +46,7 @@ async def nds_callback(query: CallbackQuery, state: FSMContext) -> None:
     try:
         if 'yes' in query.data:
             await state.update_data(nds=1.2)
-            await check_report_is_correct(query.message, state)
+            await check_report_is_correct(query.message.chat, state)
         elif 'no' in query.data:
             await query.message.answer('Укажите НДС:')
             await state.set_state(ReportState.nds)

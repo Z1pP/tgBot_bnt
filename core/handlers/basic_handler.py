@@ -4,10 +4,10 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 
-from loader import db, dp
+from loader import db
 from core.keyboards.reply import reply_keyboard_manager, default_keyboard
-from entities.managers import Manager, SuperManager
 from core.states.states_form import Registration
+from core.filters.admin_filter import IsAdmin
 
 router = Router()
 
@@ -35,40 +35,25 @@ async def start(message: Message, state: FSMContext) -> None:
 
 
 @router.message(F.text == 'Начать работу')
-async def work_menu(message: Message) -> None:
-    tg_name = message.from_user.first_name
-    tg_id = str(message.from_user.id)
+async def work_menu(message: Message, state: FSMContext) -> None:
+    manager = db.get_manager_to_id(id=message.from_user.id)
+    manager_name = manager[0][2]
 
-    user = db.get_manager_to_id(id=tg_id)
-
-    if not user:
-        manager = Manager(name=dp.name, nickname=tg_name, id=tg_id)
-        db.add_managers_to_db(manager=manager)
-    else:
-        manager_role = user[0][3]
-        name = user[0][2]
-
-        if manager_role == 'Manager':
-            manager = Manager(name=name, nickname=tg_name, id=tg_id)
-        else:
-            manager = SuperManager(name=name, nickname=tg_name, id=tg_id)
-
-    # Глобальная переменная менеджера
-    dp.manager = manager
-    await message.answer(f'Отлично {dp.manager.name}, теперь я готов к работе!',
-                         reply_markup=reply_keyboard_manager(dp.manager))
+    await message.answer(f'Отлично {manager_name}, теперь я готов к работе!',
+                         reply_markup=reply_keyboard_manager(manager[0][0]))
 
 
 @router.message(F.text == '🖊 Изменить имя')
 async def change_name(message: Message, state: FSMContext) -> None:
-    await message.answer(f'Введите новое имя:')
+    await message.answer('Введите новое имя:')
     await state.set_state(Registration.name)
 
 
 @router.message(F.text == '/number')
 async def get_random_number(message: Message) -> None:
+    from datetime import datetime
     number = random.randint(0, 101)
-    await message.reply(str(number))
+    await message.reply(f'{datetime.now().strftime("%d.%m.%Y %H:%M:%S")} = {number}')
 
 
 # Регистрируем имя нового пользователя
@@ -80,18 +65,23 @@ async def registration(message: Message, state: FSMContext) -> None:
     register_name = message.text.strip().capitalize()
 
     manager = db.get_manager_to_id(id=message.from_user.id)
-    if manager:
-        manager_id = manager[0][0]
-        db.change_manager_name(new_name=register_name, id=manager_id)
-
-    dp.name = register_name
-    await message.answer(f'Привет {register_name}, я бот для отчетов.\n' +
+    if not manager:
+        db.add_managers_to_db(id = message.from_user.id, name=register_name,
+                              tg_name=message.from_user.first_name, role='Manager')
+        await message.answer(f'Привет {register_name}, я бот для отчетов.\n' +
                          'Для начала работы нажми внизу "Начать работу" ',
                          reply_markup=default_keyboard)
-        
+        return
+    last_name = manager[0][2]
+    manager_id = manager[0][0]
+    try:
+        db.change_manager_name(new_name=register_name, id=manager_id)
+        await message.answer(f'Успешно изменено имя {last_name} на {register_name}',
+                             reply_markup= default_keyboard)
+    except Exception as e:
+        await message.answer("Произошла ошибка при попытке изменить имя!",
+                             reply_markup= default_keyboard)
     
-
-
 @router.message(StateFilter(Registration.name))
 async def not_correct_name(message: Message) -> None:
     await message.answer('⛔️ Внимание! ⛔️\n Имя должно быть короче 2 символов и не длинее 10, а также не содержит '

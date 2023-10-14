@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 from core.filters.admin_filter import IsAdmin
-from loader import db, dp
+from loader import db
 
 router = Router()
 
@@ -16,9 +16,7 @@ async def give_admin_root(message: Message):
     
     if len(managers) > 1:
         for manager in managers:
-            if dp.manager.id == int(manager[0]):
-                continue
-            kb.button(text= manager[1], callback_data=f'id_{manager[0]}')
+            kb.button(text= manager[2], callback_data=f'id_{manager[0]}')
 
         kb.adjust(2)
 

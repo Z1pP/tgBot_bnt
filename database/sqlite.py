@@ -35,7 +35,7 @@ class DataBase:
             self._cursor.execute("""INSERT INTO reports (date, name, tg_id, orders, invoices, paid_invoices, margine,
                                       revenue, conversion, conversion_paid, markup_percentage)
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                                 (report.date, report.manager.name, report.manager.id, report.orders, report.invoices,
+                                 (report.date, report.manager, report.id, report.orders, report.invoices,
                                   report.paid_invoices, report.margin, report.revenue, round(report.conversion, 2),
                                   round(report.conversion_paid, 2), round(report.markup_percentage, 2)))
 
@@ -44,10 +44,10 @@ class DataBase:
         except sqlite3.OperationalError as e:
             raise e
 
-    def add_managers_to_db(self, manager):
+    def add_managers_to_db(self, id, name, tg_name, role):
         self._cursor.execute(f"""INSERT INTO managers (id,nickname, name, role) 
-                        VALUES ('{manager.id}','{manager.nickname}',
-                                '{manager.name}', '{manager.role}')""")
+                        VALUES ('{id}','{tg_name}',
+                                '{name}', '{role}')""")
         self._connection.commit()
 
     def get_manager_to_id(self, id: str) -> list:

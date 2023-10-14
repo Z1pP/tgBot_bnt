@@ -11,7 +11,27 @@ class Report:
         self.margin = float(margin)
         self.revenue = float(revenue)
         self.nds = float(nds)
-        self.conversion = (self.invoices * 100) / self.orders
-        self.conversion_paid = (self.paid_invoices * 100) / self.invoices
-        self.markup_percentage = (self.margin * 100) / (self.revenue / float(nds))
+        self.conversion = self.colc_conversion()
+        self.conversion_paid = self.colc_conversion_paid()
+        self.markup_percentage = self.colc_markup_percentage()
 
+    
+    def colc_conversion(self):
+        try:
+            return (self.invoices * 100) / self.orders
+        except ZeroDivisionError:
+            return 0
+
+
+    def colc_conversion_paid(self):
+        try:
+            return (self.paid_invoices * 100) / self.invoices
+        except ZeroDivisionError:
+            return 0
+
+    
+    def colc_markup_percentage(self):
+        try:
+            return (self.margin * 100) / (self.revenue / float(self.nds))
+        except ZeroDivisionError:
+            return 0

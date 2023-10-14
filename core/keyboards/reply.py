@@ -1,6 +1,7 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
+from loader import db
 
 def get_user_keyboard() -> ReplyKeyboardMarkup:
     keyboard = ReplyKeyboardBuilder()
@@ -43,10 +44,10 @@ default_keyboard = ReplyKeyboardMarkup(keyboard=[
 ], resize_keyboard=True, one_time_keyboard=True, input_field_placeholder= 'Выберите действие ⬇')
 
 
-def reply_keyboard_manager(manager) -> ReplyKeyboardMarkup:
-    # Определяем reply_markup в зависимости от роли пользователя
-
-    if manager.role == 'Manager':
-        return get_user_keyboard()
-    else:
+def reply_keyboard_manager(manager_id) -> ReplyKeyboardMarkup:
+    manager = db.get_manager_to_id(id=manager_id)
+    manager_role = manager[0][3]
+    if manager_role == 'SuperManager':
         return get_admin_keyboard()
+    else:
+        return get_user_keyboard()

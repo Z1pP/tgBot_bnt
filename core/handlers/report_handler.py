@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, Chat
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 
@@ -8,9 +8,12 @@ from core.keyboards.inline import get_keyboard
 from core.keyboards.inline_date import get_keyboard_date
 from core.keyboards.reply import reply_keyboard_manager
 from core.filters.admin_filter import IsSuperManager
-from loader import db, dp
+from reports.report import Report
+from loader import db
 
 router = Router()
+
+data_for_report: dict = {}
 
 @router.message(F.text == '📑 Сформировать отчёт')
 async def start_create_report(message:Message) -> None:
@@ -19,10 +22,13 @@ async def start_create_report(message:Message) -> None:
                          reply_markup= get_keyboard(key='filling_form'))
 
 
-async def create_report(message: Message, state: FSMContext) -> None:
-    await state.update_data(manager = dp.manager)
+async def create_report(chat: Chat, state: FSMContext) -> None:
+    manager = db.get_manager_to_id(id=chat.id)
+    manager_name = manager[0][2]
+    await state.update_data(manager = manager_name)
     
-    await message.answer('Введите количество обработанных запросов:')
+    await chat.bot.send_message(chat_id=chat.id, 
+                                text='Введите количество обработанных запросов:')
     await state.set_state(ReportState.orders)
 
 
@@ -106,34 +112,38 @@ async def get_nds(message: Message, state: FSMContext) -> None:
     await check_report_is_correct(message, state)
 
 
-async def check_report_is_correct(message: Message, state: FSMContext) -> None:
-    global data_state
-    data_state = await state.get_data()
+async def check_report_is_correct(chat: Chat, state: FSMContext) -> None:
+    global data_for_report
+    data_for_report = await state.get_data()
 
     answer_text = f'''
-    Заказов обработанно - {data_state['orders']},
-    Счетов выставленно - {data_state['invoices']},
-    Заказов оплаченно - {data_state['paid']},
-    Маржа - {data_state['margin']},
-    Полученная выручка - {data_state['revenue']},
-    НДС - {data_state['nds']}'''
+    Заказов обработанно - {data_for_report['orders']},
+    Счетов выставленно - {data_for_report['invoices']},
+    Заказов оплаченно - {data_for_report['paid']},
+    Маржа - {data_for_report['margin']},
+    Полученная выручка - {data_for_report['revenue']},
+    НДС - {data_for_report['nds']}'''
 
-    await message.answer('Проверьте указанные данные:\n' + answer_text,
-                         reply_markup=get_keyboard(key='check_report'))
+    await chat.bot.send_message(chat_id=chat.id, 
+                                text='Проверьте указанные данные:\n' + answer_text,
+                                reply_markup=get_keyboard(key='check_report'))
     await state.clear()
 
 
-async def save_report(message: Message) -> None:
-    report = dp.manager.create_report(data=data_state)
-
+async def save_report(chat: Chat) -> None:
+    report = Report(**data_for_report)
+    report.id = chat.id
     #Сохранение отчета в базу данных
+    manager = db.get_manager_to_id(chat.id)
     db.add_report_to_db(report=report)
 
     text = '''
     ✅ Отлично, ваш отчет успешно сохранен!
     Он добавлен в базу данных для формирования недельного отчета'''
     
-    await message.answer(text, reply_markup= reply_keyboard_manager(manager=dp.manager))
+    await chat.bot.send_message(chat_id=chat.id, 
+                                text = text, 
+                                reply_markup= reply_keyboard_manager(manager[0][0]))
 
 
 @router.message(F.text == '📁 Полный список отчетов', IsSuperManager())
@@ -189,7 +199,22 @@ def get_report_for_answer(report_list: list) -> list:
     for report in report_list:
         answer.append(
             report_dict_to_string(
-                report_dict= dp.manager.report_list_to_dict(report_from_db=report)
+                report_dict= report_list_to_dict(report_from_db=report)
                 )
             )
     return answer
+
+
+def report_list_to_dict(report_from_db: list) -> dict:
+        return {
+            'Дата создания': report_from_db[1],
+            'Имя': report_from_db[2],
+            'Заказов обработано': report_from_db[4],
+            'Счетов выставлено': report_from_db[5],
+            'Счетов оплачено': report_from_db[6],
+            'Маржа': report_from_db[7],
+            'Выручка': report_from_db[8],
+            'Конверсия': report_from_db[9],
+            'Конверсия счета в оплату': report_from_db[10],
+            'Процент наценки': report_from_db[11]
+        }
