@@ -14,8 +14,8 @@ from core.utils import commands
 
 
 async def check_report_status() -> None:
-    start_time = datetime.now().replace(hour=17, minute=0, second=0, microsecond=0)
-    end_time = datetime.now().replace(hour=23, minute=0, second=0, microsecond=0)
+    start_time = datetime.now().replace(hour=13, minute=50, second=0, microsecond=0)
+    end_time = datetime.now().replace(hour=20, minute=0, second=0, microsecond=0)
 
     while True:
         # Проверка чтобы бот не писал с 18.00 до 2300
