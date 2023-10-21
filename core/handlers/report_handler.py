@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, Chat
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core.states.states_form import ReportState
 from core.keyboards.inline import get_keyboard
@@ -153,17 +154,22 @@ async def get_report_list(message: Message):
 
     #Проверка наличия отчетов
     if not report_list:
-        await message.answer('У вас нет отчетов!')
+        await message.answer('Список отчетов пуст!')
         return
     
-    answer  = get_report_for_answer(report_list) 
-    #Получение количества отчетов
-    reports_count = len(report_list)
+    answer  = get_report_for_answer(report_list)
+    report_count = len(answer)
 
-    #Отправка отчетов
-    await message.answer(f'Всего отчетов: {str(reports_count)}\n' 
-                         + '-' * 50 +'\n'
-                         + '\n\n'.join(answer))
+    for i, report in enumerate(answer):
+        report_id = report_list[i][0]
+        delete_kd = InlineKeyboardBuilder()
+        delete_kd.button(text='🗑 Удалить', callback_data=f'delete_report_{report_id}')
+        markup = delete_kd.as_markup()
+
+        # Объединить текста отчета и кнопки 
+        report_text = f"Отчет {i + 1} из {report_count}:\n{report}"
+        message_to_send = f"{report_text}\nВыберите действие:"
+        await message.answer(message_to_send, reply_markup=markup)
 
 
 @router.message(F.text == '📅 Получить отчёты по дате', IsSuperManager())
@@ -176,21 +182,23 @@ async def get_report_by_date_from_db(message: Message, date: str):
     report_list = db.get_report_list_by_date(date)
     
     answer = get_report_for_answer(report_list)
+    report_count = len(answer)
 
-    reports_count = len(report_list)
+    for i, report in enumerate(answer):
+        delete_kd = InlineKeyboardBuilder()
+        delete_kd.button(text='🗑 Удалить', callback_data=f'delete_report_{i}')
+        markup = delete_kd.as_markup()
 
-    #Отправка отчетов
-    await message.answer(f'Всего отчетов: {str(reports_count)}\n' 
-                         + '-' * 50 +'\n'
-                         + '\n\n'.join(answer))
+        # Объединить текст отчета и кнопку с помощью join
+        report_text = f"Отчет {i + 1} из {report_count}:\n{report}"
+        message_to_send = f"{report_text}\nВыберите действие:"
+        await message.answer(message_to_send, reply_markup=markup)
+
     
-
-
 def report_dict_to_string(report_dict: dict) -> str:
     # Преобразование списка данных в одну строку для отправки
     string = "\n".join(f"{k}: {v}%" if k == "Процент наценки" else f"{k}: {v}" for k, v in report_dict.items())
     return string
-
 
 
 def get_report_for_answer(report_list: list) -> list:
