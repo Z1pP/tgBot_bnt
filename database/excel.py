@@ -2,6 +2,7 @@ import openpyxl
 from openpyxl.styles import Font, Alignment
 from datetime import datetime, timedelta
 import calendar
+import pathlib
 
 from loader import db
 
@@ -57,7 +58,9 @@ def create_excel(period: str) -> str:
             # Выравнивание по центру для всех ячеек
             cell.alignment = alignment
 
-    file = f'./folder_to_reports/Отчет {start_date} - {end_date}.xlsx'
+    folder = 'folder_to_reports'
+    path_root = pathlib.Path(folder).parent.resolve()
+    file = f'{path_root}/{folder}/Отчет {start_date} - {end_date}.xlsx'
     # Сохраняем Excel-файл
     wb.save(filename=file)
     return file
