@@ -59,8 +59,9 @@ def create_excel(period: str) -> str:
             cell.alignment = alignment
 
     folder = 'folder_to_reports'
-    path_root = pathlib.Path(folder).parent.resolve()
-    file = f'{path_root}/{folder}/Отчет {start_date} - {end_date}.xlsx'
+    pathlib.Path(folder).mkdir(parents=True, exist_ok=True)
+
+    file = f'{folder}/Отчет {start_date}-{end_date}.xlsx'
     # Сохраняем Excel-файл
     wb.save(filename=file)
     return file

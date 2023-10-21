@@ -16,12 +16,12 @@ async def period_callback(query: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     period = query.data.split('_')[-1]
 
-    excel_name = create_excel(period=period)
+    path = create_excel(period=period)
 
-    document = FSInputFile(path=excel_name)
+    document = FSInputFile(path=path)
     await query.message.answer_document(
         document=document,
         caption='Все отчеты за указанный период'
     )
-
-        
+    await asyncio.sleep(5)
+    os.remove(path)        
