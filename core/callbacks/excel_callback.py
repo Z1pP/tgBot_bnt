@@ -1,4 +1,5 @@
 import os
+import asyncio
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
@@ -20,6 +21,7 @@ async def period_callback(query: CallbackQuery, state: FSMContext) -> None:
     document = FSInputFile(path=excel_name)
     await query.message.answer_document(document=document, 
                                         caption='Все отчеты за указанный период')
+    await asyncio.sleep(5) # задержка перед удалением файла 
     os.remove(path=excel_name)
 
         
