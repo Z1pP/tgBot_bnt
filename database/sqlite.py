@@ -100,3 +100,7 @@ class DataBase:
     def delete_report_from_db(self, id):
         self._cursor.execute(f"""DELETE FROM reports WHERE id == {id}""")
         self._connection.commit()
+
+    def delete_manager_from_db(self, id):
+        self._cursor.execute(f"""DELETE FROM managers WHERE id == {id}""")
+        self._connection.commit()

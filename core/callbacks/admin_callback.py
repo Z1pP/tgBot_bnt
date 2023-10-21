@@ -32,3 +32,18 @@ async def id_callback(query: CallbackQuery, bot: Bot) -> None:
                                     'Для применения новых функций перезагрузите бот командой /start')
     except Exception as e:
         await query.answer(f"Произошла ошибка: {str(e)}")
+
+
+@router.callback_query(F.data.startswith('delete_manager_'))
+async def delete_manager_callback(query: CallbackQuery) -> None:
+    await query.answer()
+    manager_id = query.data.split('_')[-1]
+    if manager_id == str(query.message.chat.id):
+        await query.message.answer('Вы не можете удалить самого себя!',
+                                   reply_markup= reply_keyboard_manager(query.message.chat.id))
+        return
+    try:
+        db.delete_manager_from_db(id=manager_id)
+        await query.message.answer('Пользователь удален.')
+    except Exception as e:
+        await query.answer(f"Произошла ошибка при попытке удаления: {str(e)}")
