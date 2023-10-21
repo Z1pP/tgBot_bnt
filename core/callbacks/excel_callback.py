@@ -24,7 +24,4 @@ async def period_callback(query: CallbackQuery, state: FSMContext) -> None:
         caption='Все отчеты за указанный период'
     )
 
-    await asyncio.sleep(5)  # Задержка перед удалением файла
-    os.remove(path=excel_name)  # Удаление файла для экономии места
-
         
