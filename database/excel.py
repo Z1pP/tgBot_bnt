@@ -57,7 +57,7 @@ def create_excel(period: str) -> str:
             # Выравнивание по центру для всех ячеек
             cell.alignment = alignment
 
-    file = f'folder_to_reports/Отчет {start_date} - {end_date}.xlsx'
+    file = f'./folder_to_reports/Отчет {start_date} - {end_date}.xlsx'
     # Сохраняем Excel-файл
     wb.save(filename=file)
     return file
