@@ -10,19 +10,21 @@ from core.filters.admin_filter import IsSuperManager
 
 router = Router()
 
-
+# Проверяет согласие пользователя с указанными данными
 @router.callback_query(F.data.startswith('confirmation_'))
 async def check_report_on_correct(query: CallbackQuery, state: FSMContext) -> None:
     await query.answer()
     try:
         if 'yes' in query.data:
-            await save_report(query.message.chat)
+            await save_report(chat = query.message.chat)
         elif 'no' in query.data:
-            await query.message.answer('Заполните форму заново!',
-                                       reply_markup=default_keyboard)
+            await query.message.answer(
+                text='Заполните форму заново!',
+                reply_markup=default_keyboard
+            )
             await state.clear()
     except Exception as e:
-        await query.answer(f"Произошла ошибка: {str(e)}")
+        await query.answer(text=f"Произошла ошибка: {str(e)}")
 
 
 # Проверяет ответ пользователя перед заполнением формы
@@ -32,13 +34,15 @@ async def conf_for_form(query: CallbackQuery, state: FSMContext) -> None:
     try:
         if 'yes' in query.data:
             await state.set_state(ReportState.manager)
-            await create_report(query.message.chat, state)
+            await create_report(chat = query.message.chat, state = state)
         elif 'no' in query.data:
-            await query.message.answer('Заполенение формы отмененно!',
-                                       reply_markup=default_keyboard)
+            await query.message.answer(
+                text='Заполенение формы отмененно!',
+                reply_markup=default_keyboard
+            )
             await state.clear()
     except Exception as e:
-        await query.answer(f"Произошла ошибка: {str(e)}")
+        await query.answer(text=f"Произошла ошибка: {str(e)}")
 
 
 # Проверяет ответ пользователя - оставить ндс или указать новый
@@ -47,13 +51,13 @@ async def nds_callback(query: CallbackQuery, state: FSMContext) -> None:
     await query.answer()
     try:
         if 'yes' in query.data:
-            await state.update_data(nds=1.2)
-            await check_report_is_correct(query.message.chat, state)
+            await state.update_data(nds=1.2) # Значение по умолчанию
+            await check_report_is_correct(chat = query.message.chat, state = state)
         elif 'no' in query.data:
-            await query.message.answer('Укажите НДС:')
+            await query.message.answer(text='Укажите НДС:')
             await state.set_state(ReportState.nds)
     except Exception as e:
-        await query.answer(f"Произошла ошибка: {str(e)}")
+        await query.answer(text=f"Произошла ошибка: {str(e)}")
 
 
 # Проверяет выбранную дату для формирования отчета по этой дате
@@ -62,9 +66,9 @@ async def date_callback(query: CallbackQuery) -> None:
     await query.answer()
     try:
         date = query.data.split('_')[-1]
-        await get_report_by_date_from_db(query.message, date)
+        await get_report_by_date_from_db(message= query.message, date= date)
     except Exception as e:
-        await query.answer(f"Произошла ошибка: {str(e)}")
+        await query.answer(text= f"Произошла ошибка: {str(e)}")
 
 
 @router.callback_query(IsSuperManager(), F.data.startswith('delete_report_'))
@@ -72,7 +76,7 @@ async def delete_report(query: CallbackQuery) -> None:
     await query.answer()
     try:
         report_id = int(query.data.split('_')[-1])
-        db.delete_report_from_db(report_id)
-        await query.message.answer('Отчет успешно удален!')
+        db.delete_report_from_db(id= report_id)
+        await query.message.answer(text='Отчет успешно удален!')
     except Exception as e:
-        await query.answer(f"Произошла ошибка при удалении: {str(e)}")
+        await query.answer(text= f"Произошла ошибка при удалении: {str(e)}")

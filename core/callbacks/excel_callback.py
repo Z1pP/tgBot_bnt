@@ -19,9 +19,12 @@ async def period_callback(query: CallbackQuery, state: FSMContext) -> None:
     excel_name = create_excel(period=period)
 
     document = FSInputFile(path=excel_name)
-    await query.message.answer_document(document=document, 
-                                        caption='Все отчеты за указанный период')
-    await asyncio.sleep(5) # задержка перед удалением файла 
-    os.remove(path=excel_name)
+    await query.message.answer_document(
+        document=document,
+        caption='Все отчеты за указанный период'
+    )
+
+    await asyncio.sleep(5)  # Задержка перед удалением файла
+    os.remove(path=excel_name)  # Удаление файла для экономии места
 
         
