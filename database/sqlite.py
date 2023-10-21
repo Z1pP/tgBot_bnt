@@ -58,11 +58,20 @@ class DataBase:
         self._cursor.execute("""SELECT * FROM reports""")
         return self._cursor.fetchall()
 
-    def get_report_list_for_excel(self) -> list:
-        self._cursor.execute("""SELECT date, name, orders, invoices, paid_invoices, margine,
-                                revenue, conversion, conversion_paid, markup_percentage FROM reports""")
+    def get_report_list_for_excel_period(self, start_date:str, end_date: str) -> list:
+        self._cursor.execute("""
+                            SELECT date, name, orders, invoices, paid_invoices, margine,
+                            revenue, conversion, conversion_paid, markup_percentage FROM reports
+                            WHERE date BETWEEN ? AND ?""", (start_date, end_date))
         return self._cursor.fetchall()
 
+    def get_report_list_for_excel_all(self) -> list:
+        self._cursor.execute("""
+                            SELECT date, name, orders, invoices, paid_invoices, margine,
+                            revenue, conversion, conversion_paid, markup_percentage FROM reports
+                             """)
+        return self._cursor.fetchall()
+    
     def get_report_list_by_date(self, date: str) -> list:
         self._cursor.execute(f"""SELECT * FROM reports WHERE date == '{date}'""")
         return self._cursor.fetchall()
@@ -87,3 +96,7 @@ class DataBase:
             self._connection.commit()
         except sqlite3.OperationalError as e:
             raise e
+
+    def delete_report_from_db(self, id):
+        self._cursor.execute(f"""DELETE FROM reports WHERE id == {id}""")
+        self._connection.commit()

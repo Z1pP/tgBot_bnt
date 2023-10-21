@@ -2,9 +2,11 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
+from loader import db
 from core.handlers.report_handler import save_report, create_report, check_report_is_correct, get_report_by_date_from_db
 from core.keyboards.reply import default_keyboard
 from core.states.states_form import ReportState
+from core.filters.admin_filter import IsSuperManager
 
 router = Router()
 
@@ -55,7 +57,7 @@ async def nds_callback(query: CallbackQuery, state: FSMContext) -> None:
 
 
 # Проверяет выбранную дату для формирования отчета по этой дате
-@router.callback_query(F.data.startswith('report_date_'))
+@router.callback_query(IsSuperManager(),F.data.startswith('report_date_'))
 async def date_callback(query: CallbackQuery) -> None:
     await query.answer()
     try:
@@ -63,3 +65,14 @@ async def date_callback(query: CallbackQuery) -> None:
         await get_report_by_date_from_db(query.message, date)
     except Exception as e:
         await query.answer(f"Произошла ошибка: {str(e)}")
+
+
+@router.callback_query(IsSuperManager(), F.data.startswith('delete_report_'))
+async def delete_report(query: CallbackQuery) -> None:
+    await query.answer()
+    try:
+        report_id = int(query.data.split('_')[-1])
+        db.delete_report_from_db(report_id)
+        await query.message.answer('Отчет успешно удален!')
+    except Exception as e:
+        await query.answer(f"Произошла ошибка при удалении: {str(e)}")

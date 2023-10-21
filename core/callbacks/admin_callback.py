@@ -20,7 +20,7 @@ async def id_callback(query: CallbackQuery, bot: Bot) -> None:
     # Проверяем, является ли менеджер администратором
 
     if manager_id == str(query.message.chat.id):
-        await query.message.answer(f'Вы не можете удалить самого себя!',
+        await query.message.answer('Вы не можете удалить самого себя!',
                                    reply_markup= reply_keyboard_manager(query.message.chat.id))
         return
     try:

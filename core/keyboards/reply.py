@@ -3,6 +3,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from loader import db
 
+
 def get_user_keyboard() -> ReplyKeyboardMarkup:
     keyboard = ReplyKeyboardBuilder()
 
@@ -51,3 +52,5 @@ def reply_keyboard_manager(manager_id) -> ReplyKeyboardMarkup:
         return get_admin_keyboard()
     else:
         return get_user_keyboard()
+    
+

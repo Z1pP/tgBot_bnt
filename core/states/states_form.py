@@ -13,3 +13,6 @@ class ReportState(StatesGroup):
 class Registration(StatesGroup):
     name = State()
 
+
+class Period(StatesGroup):
+    period = State()
