@@ -82,9 +82,10 @@ async def paid_not_digit(message: Message) -> None:
     
 
 @router.message(StateFilter(ReportState.margin), 
-                lambda x: (x.text.isdigit() or x.text.isnumeric()) and int(x.text) >= 0)
+                lambda x: ('-' not in x.text) and
+                (x.text.replace('.', '', 1).isdigit() or x.text.replace(',', '', 1).isdigit()))
 async def get_margine(message: Message, state: FSMContext) -> None:
-    await state.update_data(margin = message.text)
+    await state.update_data(margin = message.text.replace(',','.',1))
 
     await message.answer('Укажите полученную выручку:')
     await state.set_state(ReportState.revenue)
@@ -97,13 +98,22 @@ async def margin_not_digit_and_not_less_zero(message: Message) -> None:
                          'Введите корректно маржу:')
 
 
-@router.message(ReportState.revenue, F.text)
+@router.message(StateFilter(ReportState.revenue), 
+                lambda x: ('-' not in x.text) and
+                (x.text.replace('.', '', 1).isdigit() or x.text.replace(',', '', 1).isdigit()))
 async def get_revenue(message: Message, state: FSMContext) -> None:
-    await state.update_data(revenue = message.text)
+    await state.update_data(revenue = message.text.replace(',','.',1))
 
     await message.answer('Рассчеты принимаемс с НДС равным 1.2?',
                          reply_markup=get_keyboard(key='nds'))
     await state.set_state(ReportState.nds)
+
+
+@router.message(StateFilter(ReportState.revenue))
+async def revenue_not_digit_and_not_less_zero(message: Message) -> None:
+    await message.answer('⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n' +
+                         'Возможно вы ввели отрицательное число...\n' +
+                         'Введите корректно полученную выручку:')
 
 
 @router.message(ReportState.nds, F.text)
@@ -185,8 +195,9 @@ async def get_report_by_date_from_db(message: Message, date: str):
     report_count = len(answer)
 
     for i, report in enumerate(answer):
+        report_id = report_list[i][0]
         delete_kd = InlineKeyboardBuilder()
-        delete_kd.button(text='🗑 Удалить', callback_data=f'delete_report_{i}')
+        delete_kd.button(text='🗑 Удалить', callback_data=f'delete_report_{report_id}')
         markup = delete_kd.as_markup()
 
         # Объединить текст отчета и кнопку с помощью join
