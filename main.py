@@ -40,13 +40,14 @@ async def check_report_status() -> None:
                 next_day_start_time = start_time + timedelta(days=1)
                 time_sleep = next_day_start_time - current_time
                 await asyncio.sleep(time_sleep.total_seconds())
+                continue
 
         # Получение списка менеджеров из БД
         managers_list = db.get_managers()
         
         # Проверка что список не пустой
         if not managers_list:
-            await asyncio.sleep(1800)
+            await asyncio.sleep(60*60) # Ожидание 1 час
             continue
 
         #Получение даты в формате строки
@@ -57,11 +58,15 @@ async def check_report_status() -> None:
             # Проверка, что менеджер отправил отчет за текущий день
             if not any(manager[0] in report for report in report_list):
                 # Отправка уведомления если отчет не отправлен
-                await bot.send_message(
+                try:
+                    await bot.send_message(
                     chat_id=manager[0],
                     text=f'Напоминаю, что вам необходимо сделать отчет за {current_date}!'
                 )
-        await asyncio.sleep(1800)
+                except Exception as e:
+                    logging.exception(e) # Логирование на случай ошибки
+                    continue
+        await asyncio.sleep(60*30) # Ожидание 30 минут
 
 
 async def main():
