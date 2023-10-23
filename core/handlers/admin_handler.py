@@ -40,7 +40,9 @@ async def delete_manager(message: Message):
 
     if len(managers) > 1:
         for manager in managers:
-            kb.button(text= manager[2], callback_data=f'delete_manager_{manager[0]}')
+            manager_name = manager[2] 
+            manager_id = manager[0]
+            kb.button(text= manager_name, callback_data=f'delete_manager_{manager_id}')
 
         kb.adjust(2)
 
