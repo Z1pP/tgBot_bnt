@@ -79,11 +79,11 @@ async def main():
         admin_callback.router,
         excel_callback.router
     )
+
     # Установка соединения с БД или создание новой
     db.create_tables_or_get_exists()
     # Установка команд для бота
     await commands.set_commands(bot)
-
     try:
         await dp.start_polling(bot)
     finally:
