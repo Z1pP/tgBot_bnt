@@ -14,4 +14,4 @@ class IsSuperManager(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         manager = db.get_manager_to_id(message.from_user.id)
         role = manager[0][3]
-        return role == 'SuperManager'
+        return role == "SuperManager"
