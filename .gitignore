@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
 # Ignore virtual environments
 venv
 venv/
@@ -11,10 +12,19 @@ ENV/
 .pyenv/
 .Python
 .env
+
 # Ignore SQLite database files
 *.sqlite
 *.sqlite3
 *.db
 *.db3
+
 # Ignore other folders
 folder_to_reports
+
+# IDE
+.vscode
+.idea
+
+# logs
+*.log
