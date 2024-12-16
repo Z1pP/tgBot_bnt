@@ -5,7 +5,7 @@ import calendar
 import pathlib
 
 from loader import db
-from core.enums import Period
+from bot.enums import Period
 
 
 def get_period_dates(period: str) -> tuple:

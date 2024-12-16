@@ -15,7 +15,7 @@ class DataBase:
             print(e)
         return conn
 
-    def create_tables_or_get_exists(self):
+    def create_tables_if_not_exists(self):
         self._cursor.execute(
             """CREATE TABLE IF NOT EXISTS reports 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT,date TEXT, name TEXT,tg_id TEXT,
@@ -26,11 +26,11 @@ class DataBase:
 
         self._cursor.execute(
             """CREATE TABLE IF NOT EXISTS managers 
-                        (id TEXT PRIMARY KEY, nickname TEXT, name TEXT, role TEXT)"""
+                        (id TEXT PRIMARY KEY, username TEXT, name TEXT, role TEXT)"""
         )
         self._connection.commit()
 
-    def get_managers(self) -> list:
+    def get_managers_from_db(self) -> list:
         self._cursor.execute("""SELECT * FROM managers""")
         return self._cursor.fetchall()
 
@@ -60,16 +60,16 @@ class DataBase:
         except sqlite3.OperationalError as e:
             raise e
 
-    def add_managers_to_db(self, id, name, tg_name, role):
+    def add_managers_to_db(self, id, name, username, role):
         self._cursor.execute(
-            f"""INSERT INTO managers (id,nickname, name, role) 
-                        VALUES ('{id}','{tg_name}',
+            f"""INSERT INTO managers (id,username, name, role) 
+                        VALUES ('{id}','{username}',
                                 '{name}', '{role}')"""
         )
         self._connection.commit()
 
-    def get_manager_to_id(self, id: str) -> list:
-        self._cursor.execute(f"""SELECT * FROM managers WHERE id == {id}""")
+    def get_manager_to_id(self, id: int) -> list:
+        self._cursor.execute(f"""SELECT * FROM managers WHERE id == ?""", (id))
         return self._cursor.fetchall()
 
     def get_report_list(self) -> list:
@@ -117,10 +117,10 @@ class DataBase:
         self._connection.commit()
         return "SuperManager"
 
-    def change_manager_name(self, new_name, id):
+    def change_manager_name(self, new_name: str, id: int):
         try:
             self._cursor.execute(
-                f"""UPDATE managers SET name = '{new_name}' WHERE id == '{id}'"""
+                f"""UPDATE managers SET name = ? WHERE id == ?""", (new_name, id)
             )
             self._connection.commit()
         except sqlite3.OperationalError as e:

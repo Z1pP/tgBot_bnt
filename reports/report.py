@@ -3,7 +3,7 @@ from datetime import datetime
 
 class Report:
     def __init__(self, manager, orders, invoices, paid, margin, revenue, nds) -> None:
-        self.date = datetime.now().strftime('%d.%m.%Y')
+        self.date = datetime.now().strftime("%d.%m.%Y")
         self.manager = manager
         self.orders = int(orders)
         self.invoices = int(invoices)
@@ -15,13 +15,11 @@ class Report:
         self.conversion_paid = self.colc_conversion_paid()
         self.markup_percentage = self.colc_markup_percentage()
 
-    
     def colc_conversion(self):
         try:
             return (self.invoices * 100) / self.orders
         except ZeroDivisionError:
             return 0
-
 
     def colc_conversion_paid(self):
         try:
@@ -29,7 +27,6 @@ class Report:
         except ZeroDivisionError:
             return 0
 
-    
     def colc_markup_percentage(self):
         try:
             return (self.margin * 100) / (self.revenue / float(self.nds))
