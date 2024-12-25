@@ -28,3 +28,7 @@ folder_to_reports
 
 # logs
 *.log
+
+# Alembic migrations
+alembic/versions/*
+!alembic/versions/.gitkeep
