@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from loader import dp, bot
+from bot.loader import dp, bot
 from bot.handlers import (
     basic_handler,
     report_handler,

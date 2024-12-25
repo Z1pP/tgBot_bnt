@@ -1,7 +1,7 @@
 from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery
 
-from loader import db
+from bot.loader import db
 from bot.keyboards.reply import reply_keyboard_manager
 
 router = Router()

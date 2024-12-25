@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from loader import db
+from bot.loader import db
 from bot.handlers.report_handler import (
     save_report,
     create_report,

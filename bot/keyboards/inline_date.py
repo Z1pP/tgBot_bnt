@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from loader import db
+from bot.loader import db
 
 
 def get_keyboard_date() -> InlineKeyboardMarkup:

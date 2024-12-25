@@ -10,7 +10,7 @@ from bot.keyboards.inline_date import get_keyboard_date
 from bot.keyboards.reply import reply_keyboard_manager
 from bot.filters.admin_filter import IsSuperManager
 from reports.report import Report
-from loader import db
+from bot.loader import db
 
 router = Router()
 

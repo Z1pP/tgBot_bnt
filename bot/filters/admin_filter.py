@@ -2,7 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
 from bot.data.config import ADMINS
-from loader import db
+from bot.loader import db
 
 
 class IsAdmin(BaseFilter):

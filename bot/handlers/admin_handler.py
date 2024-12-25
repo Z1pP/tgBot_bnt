@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 from bot.filters.admin_filter import IsAdmin
-from loader import db
+from bot.loader import db
 
 router = Router()
 
@@ -59,7 +59,6 @@ async def delete_manager(message: Message):
 # Админ команда для тестирования времени сна бота
 @router.message(F.text == "!сон", IsAdmin())
 async def show_time_until_notification(message: Message):
-    import pytz
     from datetime import datetime, timedelta
 
     belarus_tz = pytz.timezone("Europe/Minsk")

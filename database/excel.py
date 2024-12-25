@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import calendar
 import pathlib
 
-from loader import db
+from bot.loader import db
 from bot.enums import Period
 
 
