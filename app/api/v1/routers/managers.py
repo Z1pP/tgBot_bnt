@@ -11,7 +11,12 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[ManagerSchema], operation_id="readManagers")
+@router.get(
+    "/",
+    response_model=List[ManagerSchema],
+    operation_id="readManagers",
+    status_code=status.HTTP_200_OK,
+)
 async def read_managers(service: IManagersService = Depends(get_manager_service)):
     """
     Получить список всех менеджеров.
@@ -19,7 +24,12 @@ async def read_managers(service: IManagersService = Depends(get_manager_service)
     return await service.get_managers()
 
 
-@router.get("/{tg_id}", response_model=ManagerSchema | None, operation_id="getManager")
+@router.get(
+    "/{tg_id}",
+    response_model=ManagerSchema | None,
+    operation_id="getManager",
+    status_code=status.HTTP_200_OK,
+)
 async def get_manager_by_id(
     tg_id: int, service: IManagersService = Depends(get_manager_service)
 ):
@@ -29,7 +39,12 @@ async def get_manager_by_id(
     return await service.get_by_tg_id(tg_id=tg_id)
 
 
-@router.post("/", response_model=ManagerSchema, operation_id="createManager")
+@router.post(
+    "/",
+    response_model=ManagerSchema,
+    operation_id="createManager",
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_manager(
     schema: ManagerSchema, service: IManagersService = Depends(get_manager_service)
 ):
@@ -39,7 +54,12 @@ async def create_manager(
     return await service.create_manager(schema)
 
 
-@router.put("/{tg_id}", response_model=ManagerSchema, operation_id="changeName")
+@router.put(
+    "/{tg_id}",
+    response_model=ManagerSchema,
+    operation_id="changeName",
+    status_code=status.HTTP_200_OK,
+)
 async def change_name(
     tg_id: int,
     schema: ManagerNameSchema,
