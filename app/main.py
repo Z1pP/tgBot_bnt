@@ -42,16 +42,6 @@ def create_app() -> FastAPI:
 app = create_app()
 
 
-@app.on_event("startup")
-async def initialize_db():
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {e}")
-
-
 @app.get("/health", operation_id="health_status", tags=["Health"])
 async def health_check() -> dict[str, Any]:
     try:
