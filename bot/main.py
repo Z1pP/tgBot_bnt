@@ -1,16 +1,16 @@
 import asyncio
 import logging
 
-from bot.loader import dp, bot
-from bot.handlers import (
+from loader import dp, bot
+from handlers import (
     basic_handler,
     report_handler,
     excel_handler,
     admin_handler,
 )
-from bot.callbacks import report_callback, excel_callback, admin_callback
-from bot.utils import commands
-from bot.services import check_connection
+from callbacks import report_callback, excel_callback, admin_callback
+from utils import commands
+from services import check_connection
 
 logging.basicConfig(
     level=logging.INFO,

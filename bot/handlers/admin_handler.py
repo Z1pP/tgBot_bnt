@@ -3,7 +3,7 @@ from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-from bot.filters.admin_filter import IsAdmin
+from filters.admin_filter import IsAdmin
 from bot.loader import db
 
 router = Router()

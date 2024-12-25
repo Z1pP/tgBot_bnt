@@ -4,11 +4,11 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 
-from bot.keyboards.reply import reply_keyboard_manager, default_keyboard
-from bot.states.states_form import Registration, ChangeName
-from bot.data.config import BASE_URL
-from bot.services.manager_api_service import ManagerApiService
-from bot.dto.manager import ManagerDTO
+from keyboards.reply import reply_keyboard_manager, default_keyboard
+from states.states_form import Registration, ChangeName
+from data.config import BASE_URL
+from services.manager_api_service import ManagerApiService
+from dto.manager import ManagerDTO
 
 router = Router()
 
