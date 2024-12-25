@@ -1,9 +1,13 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import func, DateTime, Integer, Float, ForeignKey
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.managers import Manager
 
 
 class Report(Base):
