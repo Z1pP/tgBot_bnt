@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
+from decimal import Decimal
 
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import func, DateTime, Integer, Float, ForeignKey
+from sqlalchemy import func, DateTime, Integer, ForeignKey
+from sqlalchemy.types import DECIMAL
 
 from app.models.base import Base
 
@@ -30,17 +32,23 @@ class Report(Base):
     )  # Оплаченных счетов
 
     # Финансовые показатели
-    total_margin: Mapped[float] = mapped_column(
-        Float(precision=2), nullable=False
+    total_margin: Mapped[Decimal] = mapped_column(
+        DECIMAL(precision=10, scale=2), nullable=False
     )  # Маржа
-    total_revenue: Mapped[float] = mapped_column(
-        Float(precision=2), nullable=False
+    total_revenue: Mapped[Decimal] = mapped_column(
+        DECIMAL(precision=10, scale=2), nullable=False
     )  # Полученная выручка от счета
 
     # Дополнительные вычисляемые метрики
-    conversion_rate: Mapped[float] = mapped_column(Float, nullable=True)
-    paid_conversion_rate: Mapped[float] = mapped_column(Float, nullable=True)
-    markup_percentage: Mapped[float] = mapped_column(Float, nullable=True)
+    conversion_rate: Mapped[Decimal] = mapped_column(
+        DECIMAL(precision=5, scale=2), nullable=True
+    )
+    paid_conversion_rate: Mapped[Decimal] = mapped_column(
+        DECIMAL(precision=5, scale=2), nullable=True
+    )
+    markup_percentage: Mapped[Decimal] = mapped_column(
+        DECIMAL(precision=5, scale=2), nullable=True
+    )
 
     # Временные метки
     created_at: Mapped[datetime] = mapped_column(
