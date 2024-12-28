@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Sequence, Optional
 
 from app.schemas.managers import ManagerSchema
+from app.schemas.reports import ReportSchemaInput, ReportSchemaOutput
 
 
 class IManagersService(ABC):
@@ -68,4 +69,14 @@ class IManagersService(ABC):
         Возвращает:
             bool: True, если удаление прошло успешно, иначе False
         """
+        pass
+
+
+class IReportsService(ABC):
+    @abstractmethod
+    async def get_reports_by_tg_id(self, tg_id: int) -> list[ReportSchemaOutput]:
+        pass
+
+    @abstractmethod
+    async def create_report(self, report: ReportSchemaInput) -> ReportSchemaOutput:
         pass
