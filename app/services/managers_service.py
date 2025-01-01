@@ -1,80 +1,56 @@
 from typing import Optional, Sequence
-from sqlalchemy import select, delete
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dtos.manager_dto import ManagerDTO
+from app.repositories.managers import ManagerRepository
 from app.schemas.managers import ManagerSchema
-from app.models import Manager
 from app.services.base import IManagersService
 
 
 class ManagersService(IManagersService):
-    def __init__(self, session: AsyncSession):
-        self.session = session
+    def __init__(self, repository: ManagerRepository):
+        self._repository = repository
 
     async def get_managers(self) -> Sequence[ManagerSchema]:
         """
-        Get all managers from db
+        Получить список всех менеджеров
         """
-        query = select(Manager)
-        result = await self.session.execute(query)
-        managers = result.scalars().all()
-        return [
-            ManagerSchema(
-                tg_id=manager.tg_id,
-                username=manager.username,
-                name=manager.name,
-                role=manager.role,
-            )
-            for manager in managers
-        ]
+        managers_dtos = await self._repository.get_all()
+        return [ManagerSchema.from_dto(dto) for dto in managers_dtos]
 
     async def get_by_tg_id(self, tg_id: int) -> Optional[ManagerSchema]:
-        query = select(Manager).where(Manager.tg_id == tg_id)
-        result = await self.session.execute(query)
-        manager = result.scalar_one_or_none()
+        """
+        Получение менеджера по его телеграмм ИД
+        """
+        manager_dto = await self._repository.get_by_tg_id(tg_id)
 
-        if manager:
-            return ManagerSchema(
-                tg_id=manager.tg_id,
-                username=manager.username,
-                name=manager.name,
-                role=manager.role,
-            )
+        if manager_dto:
+            return ManagerSchema.from_dto(manager_dto)
         return None
 
     async def create_manager(self, schema: ManagerSchema) -> Optional[ManagerSchema]:
-        manager = Manager(**schema.model_dump(exclude_unset=True))
-        self.session.add(manager)
-        await self.session.commit()
-        await self.session.refresh(manager)
-        return ManagerSchema(
-            tg_id=manager.tg_id,
-            username=manager.username,
-            name=manager.name,
-            role=manager.role,
+        """
+        Создание нового менеджера
+        """
+        created_manager_dto = await self._repository.create(
+            ManagerDTO.create(**schema.model_dump(exclude_unset=True))
         )
 
+        return ManagerSchema.from_dto(created_manager_dto)
+
     async def change_name_by_tg_id(
-        self, tg_id: int, name: str
+        self, tg_id: int, updated_data: dict
     ) -> Optional[ManagerSchema]:
-        query = select(Manager).where(Manager.tg_id == tg_id)
-        result = await self.session.execute(query)
-        manager = result.scalar_one_or_none()
+        """
+        Универсальный метод обновления менеджера
+        """
+        updated_manager = await self._repository.change_by_id(
+            tg_id, params=updated_data
+        )
 
-        if manager:
-            manager.name = name
-            await self.session.commit()
-            await self.session.refresh(manager)
-            return ManagerSchema(
-                tg_id=manager.tg_id,
-                username=manager.username,
-                name=manager.name,
-                role=manager.role,
-            )
-        return None
+        return ManagerSchema.from_dto(updated_manager) if updated_manager else None
 
-    async def delete_manager(self, tg_id: int) -> bool:
-        query = delete(Manager).where(Manager.tg_id == tg_id)
-        result = await self.session.execute(query)
-        await self.session.commit()
-        return result.rowcount > 0
+    async def delete_manager(self, tg_id: int) -> None:
+        """
+        Удаляем менеджера
+        """
+        await self._repository.delete(tg_id)
