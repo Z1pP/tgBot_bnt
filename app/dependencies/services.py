@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.config import get_session
-from app.repositories.managers import ManagerRepository
+from app.repositories.manager_repository import ManagerRepository
 from app.services.base import IManagersService, IReportsService
 from app.services.managers_service import ManagersService
 from app.services.reports_service import ReportsService

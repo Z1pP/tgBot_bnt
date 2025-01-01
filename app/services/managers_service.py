@@ -1,8 +1,8 @@
 from typing import Optional, Sequence
 
 from app.dtos.manager_dto import ManagerDTO
-from app.repositories.managers import ManagerRepository
-from app.schemas.managers import ManagerSchema
+from app.repositories.manager_repository import ManagerRepository
+from app.schemas.manager_schemas import ManagerSchema
 from app.services.base import IManagersService
 
 
@@ -37,7 +37,7 @@ class ManagersService(IManagersService):
 
         return ManagerSchema.from_dto(created_manager_dto)
 
-    async def change_name_by_tg_id(
+    async def update_by_tg_id(
         self, tg_id: int, updated_data: dict
     ) -> Optional[ManagerSchema]:
         """

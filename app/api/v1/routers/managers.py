@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from typing import List
 
 from app.services.base import IManagersService
-from app.schemas.managers import ManagerSchema, ManagerNameSchema
+from app.schemas.manager_schemas import ManagerSchema, ManagerUpdateSchema
 from app.dependencies import get_manager_service
 
 router = APIRouter(
@@ -57,18 +57,18 @@ async def create_manager(
 @router.put(
     "/{tg_id}",
     response_model=ManagerSchema,
-    operation_id="changeName",
+    operation_id="changeData",
     status_code=status.HTTP_200_OK,
 )
-async def change_name(
+async def change_maanger_data(
     tg_id: int,
-    schema: ManagerNameSchema,
+    schema: ManagerUpdateSchema,
     service: IManagersService = Depends(get_manager_service),
 ):
     """
-    Изменить имя менеджера по Telegram ID.
+    Изменить данные.
     """
-    return await service.change_name_by_tg_id(
+    return await service.update_by_tg_id(
         tg_id=tg_id, updated_data=schema.model_dump(exclude_unset=True)
     )
 

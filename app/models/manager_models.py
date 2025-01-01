@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
-    from app.models.report import Report
+    from app.models.report_models import Report
 
 
 class Role(str, Enum):

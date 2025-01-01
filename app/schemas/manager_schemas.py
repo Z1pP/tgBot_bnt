@@ -18,5 +18,6 @@ class ManagerSchema(BaseModel):
         return cls(tg_id=dto.tg_id, username=dto.username, name=dto.name, role=dto.role)
 
 
-class ManagerNameSchema(BaseModel):
-    name: str
+class ManagerUpdateSchema(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None

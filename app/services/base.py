@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Sequence, Optional
 
-from app.schemas.managers import ManagerSchema
-from app.schemas.reports import ReportSchemaInput, ReportSchemaOutput
+from app.models.manager_models import Role
+from app.schemas.manager_schemas import ManagerSchema
+from app.schemas.report_schemas import ReportSchemaInput, ReportSchemaOutput
 
 
 class IManagersService(ABC):
@@ -19,7 +20,7 @@ class IManagersService(ABC):
         pass
 
     @abstractmethod
-    async def change_name_by_tg_id(
+    async def update_by_tg_id(
         self, tg_id: int, updated_data: dict
     ) -> Optional[ManagerSchema]:
         pass

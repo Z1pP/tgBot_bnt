@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from app.schemas.reports import ReportSchemaInput, ReportSchemaOutput
+from app.schemas.report_schemas import ReportSchemaInput, ReportSchemaOutput
 
 
 class FinancialCalculationService:

@@ -9,7 +9,7 @@ from sqlalchemy.types import DECIMAL
 from app.models.base import Base
 
 if TYPE_CHECKING:
-    from app.models.managers import Manager
+    from app.models.manager_models import Manager
 
 
 class Report(Base):

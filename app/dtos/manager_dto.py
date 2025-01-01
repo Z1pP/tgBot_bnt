@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from app.models.managers import Manager, Role
+from app.models.manager_models import Manager, Role
 
 
 @dataclass

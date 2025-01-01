@@ -1,2 +1,2 @@
-from .managers import Manager
-from .report import Report
+from .manager_models import Manager
+from .report_models import Report
