@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status
 
-
 from app.schemas.reports import ReportSchemaInput, ReportSchemaOutput
 from app.dependencies.services import get_reports_service
 from app.services.base import IReportsService
