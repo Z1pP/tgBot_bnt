@@ -68,7 +68,9 @@ async def change_name(
     """
     Изменить имя менеджера по Telegram ID.
     """
-    return await service.change_name_by_tg_id(tg_id=tg_id, name=schema.name)
+    return await service.change_name_by_tg_id(
+        tg_id=tg_id, updated_data=schema.model_dump(exclude_unset=True)
+    )
 
 
 @router.delete(
