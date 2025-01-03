@@ -4,7 +4,6 @@ from decimal import Decimal
 from typing import Optional
 
 from app.models.report_models import Report
-from app.schemas.report_schemas import ReportSchemaInput, ReportSchemaOutput
 
 
 @dataclass
@@ -76,39 +75,4 @@ class ReportDTO:
             markup_percentage=model.markup_percentage,
             created_at=model.created_at,
             updated_at=model.updated_at,
-        )
-
-    @classmethod
-    def from_schema(cls, schema: ReportSchemaInput) -> "ReportDTO":
-        """
-        Создание DTO из входной схемы
-        """
-        return cls(
-            manager_tg_id=schema.manager_tg_id,
-            total_orders=schema.total_orders,
-            total_invoices=schema.total_invoices,
-            paid_invoices=schema.paid_invoices,
-            total_margin=schema.total_margin,
-            total_revenue=schema.total_revenue,
-            nds=schema.nds or Decimal("1.2"),
-        )
-
-    def to_schema(self) -> ReportSchemaOutput:
-        """
-        Преобразование в выходную схему
-        """
-        return ReportSchemaOutput(
-            id=self.id,
-            manager_tg_id=self.manager_tg_id,
-            total_orders=self.total_orders,
-            total_invoices=self.total_invoices,
-            paid_invoices=self.paid_invoices,
-            total_margin=self.total_margin,
-            total_revenue=self.total_revenue,
-            nds=self.nds,
-            conversion_rate=self.conversion_rate or Decimal("0.0"),
-            paid_conversion_rate=self.paid_conversion_rate or Decimal("0.0"),
-            markup_percentage=self.markup_percentage or Decimal("0.0"),
-            created_at=self.created_at,
-            updated_at=self.updated_at,
         )
