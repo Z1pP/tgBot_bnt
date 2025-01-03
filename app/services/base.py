@@ -32,7 +32,9 @@ class IManagersService(ABC):
 
 class IReportsService(ABC):
     @abstractmethod
-    async def get_reports_by_tg_id(self, tg_id: int) -> list[ReportSchemaOutput]:
+    async def get_reports_by_manager(
+        self, manager_tg_id: int
+    ) -> list[ReportSchemaOutput]:
         pass
 
     @abstractmethod
