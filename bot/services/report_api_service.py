@@ -1,10 +1,28 @@
-# import aiohttp
+from typing import Optional
+import aiohttp
 
-# class ReportApiService:
-#     def __init__(self, base_url: str, endpoint: str):
-#         self.base_url = base_url
-#         self.endpoint = endpoint
+from bot.entities.report import ReportEnriry
 
-#     async def get_reports():
-#         async with aiohttp.ClientSession() as session:
-#             async with session.get(bas)
+
+class ReportApiService:
+    def __init__(self, base_url: str, endpoint: str):
+        self.base_url = base_url
+        self.endpoint = endpoint
+
+    async def get_reports(self) -> list[ReportEnriry]:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{self.base_url}/{self.endpoint}") as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    raise
+
+    async def create_report(self, data: dict) -> Optional[ReportEnriry]:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.base_url}/{self.endpoint}", json=data
+            ) as response:
+                if response.status == 201:
+                    return await response.json()
+                else:
+                    raise
