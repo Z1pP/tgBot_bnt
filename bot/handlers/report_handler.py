@@ -6,13 +6,14 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from states.states_form import ReportState
-from keyboards.inline import get_keyboard
-from keyboards.inline_date import get_keyboard_date
-from keyboards.reply import reply_keyboard_manager
-from filters.admin_filter import IsSuperManager
-from entities.report import ReportEnriry
-from enums import KeyboardKeys
+from bot.states.states_form import ReportState
+from bot.keyboards.inline import get_keyboard
+from bot.keyboards.inline_date import get_keyboard_date
+from bot.keyboards.reply import reply_keyboard_manager
+from bot.filters.admin_filter import IsSuperManager
+from bot.data.config import BASE_URL
+from bot.enums import KeyboardKeys, Endpoints
+from bot.services.report_api_service import ReportApiService
 
 router = Router()
 
@@ -45,10 +46,18 @@ def validate_decimal(value: str) -> Decimal:
         raise ValueError("Введите корректное число")
 
 
+async def handle_invalid_input(
+    message: Message, error_message: str, next_prompt: str
+) -> None:
+    await message.answer(f"⛔️ Внимание! ⛔️\n{error_message}\n{next_prompt}")
+
+
 @router.message(F.text == "📑 Сформировать отчёт")
 async def start_create_report(message: Message, state: FSMContext) -> None:
     # Очистка прошлого состояния
     await state.clear()
+
+    await state.update_data(manager_tg_id=message.from_user.id)
 
     await message.answer(
         "Вы готовы начать формирвать сегодняшний отчет?",
@@ -57,7 +66,6 @@ async def start_create_report(message: Message, state: FSMContext) -> None:
 
 
 async def create_report(chat: Chat, state: FSMContext) -> None:
-    await state.update_data(manager_tg_id=chat)
     await chat.bot.send_message(
         chat_id=chat.id, text="Введите количество обработанных запросов:"
     )
@@ -154,7 +162,8 @@ async def process_total_revenue(message: Message, state: FSMContext) -> None:
     await state.update_data(total_revenue=message.text.replace(",", ".", 1))
 
     await message.answer(
-        "Рассчеты принимаемс с НДС равным 1.2?", reply_markup=get_keyboard(key="nds")
+        "Рассчеты принимаемс с НДС равным 1.2?",
+        reply_markup=get_keyboard(key=KeyboardKeys.CHEKC_NDS),
     )
     await state.set_state(ReportState.nds)
 
@@ -168,7 +177,7 @@ async def revenue_not_digit_and_not_less_zero(message: Message) -> None:
     )
 
 
-@router.message(ReportState.nds, F.text)
+@router.message(ReportState.nds)
 async def process_nds(message: Message, state: FSMContext) -> None:
     await state.update_data(nds=message.text)
 
@@ -176,35 +185,31 @@ async def process_nds(message: Message, state: FSMContext) -> None:
 
 
 async def check_report_is_correct(chat: Chat, state: FSMContext) -> None:
-    global data_for_report
     data_for_report = await state.get_data()
 
-    answer_text = f"""
-    Заказов обработанно - {data_for_report['orders']},
-    Счетов выставленно - {data_for_report['invoices']},
-    Заказов оплаченно - {data_for_report['paid']},
-    Маржа - {data_for_report['margin']},
-    Полученная выручка - {data_for_report['revenue']},
-    НДС - {data_for_report['nds']}"""
+    # Форматирование данных с более читаемым выводом
+    formatted_data = "\n".join(
+        [f"{k.replace('_', ' ').title()}: {v}" for k, v in data_for_report.items()]
+    )
 
     await chat.bot.send_message(
         chat_id=chat.id,
-        text="Проверьте указанные данные:\n" + answer_text,
+        text="Проверьте указанные данные:\n" + formatted_data,
         reply_markup=get_keyboard(key="check_report"),
     )
-    await state.clear()
 
 
-async def save_report(chat: Chat) -> None:
-    global data_for_report
-
-    report = ReportEnriry.create(**data_for_report)
-    report.id = chat.id
+async def save_report(chat: Chat, state: FSMContext) -> None:
     # Сохранение отчета в базу данных
+
+    api_service = ReportApiService(base_url=BASE_URL, endpoint=Endpoints.REPORTS.value)
+    created_report = await api_service.create_report(data=await state.get_data())
 
     text = """
     ✅ Отлично, ваш отчет успешно сохранен!
     Он добавлен в базу данных для формирования недельного отчета"""
+
+    await state.clear()
 
     await chat.bot.send_message(
         chat_id=chat.id, text=text, reply_markup=reply_keyboard_manager()
