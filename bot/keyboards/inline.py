@@ -1,28 +1,30 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from enums import KeyboardKeys
+
 
 """Кнопки подтверждения создания отчета"""
-keyboard_to_creater_report = [
+creater_report_kb = [
     InlineKeyboardButton(text="Подтвердить", callback_data="confirmation_yes"),
     InlineKeyboardButton(text="Отменить", callback_data="confirmation_no"),
 ]
 
 
 """Кнопки для подтверждения начала создания отчета"""
-keyboard_for_filling_from = [
+filling_from_kb = [
     InlineKeyboardButton(text="Начать", callback_data="filling_form_yes"),
     InlineKeyboardButton(text="Отмена", callback_data="filling_form_no"),
 ]
 
-keyboard_for_nds = [
+check_nds_kb = [
     InlineKeyboardButton(text="Да", callback_data="nds_yes"),
     InlineKeyboardButton(text="Нет", callback_data="nds_no"),
 ]
 
 keyboard = {
-    "check_report": keyboard_to_creater_report,
-    "filling_form": keyboard_for_filling_from,
-    "nds": keyboard_for_nds,
+    KeyboardKeys.CHECK_REPORT: creater_report_kb,
+    KeyboardKeys.FILING_FORM: filling_from_kb,
+    KeyboardKeys.CHEKC_NDS: check_nds_kb,
 }
 
 
