@@ -10,3 +10,9 @@ class Period(str, Enum):
 class Endpoints(str, Enum):
     MANAGERS = "managers"
     REPORTS = "reports"
+
+
+class KeyboardKeys(str, Enum):
+    CHECK_REPORT = "check_report"
+    FILING_FORM = "filling_form"
+    CHEKC_NDS = "NDS"
