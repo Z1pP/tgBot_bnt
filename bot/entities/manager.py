@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ManagerDTO:
+class ManagerEntity:
     tg_id: int
     username: str
     name: str

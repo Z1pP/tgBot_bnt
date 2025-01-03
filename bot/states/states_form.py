@@ -2,12 +2,12 @@ from aiogram.fsm.state import State, StatesGroup
 
 
 class ReportState(StatesGroup):
-    manager = State()
-    orders = State()
-    invoices = State()
-    paid = State()
-    margin = State()
-    revenue = State()
+    manager_tg_id = State()
+    total_orders = State()
+    total_invoices = State()
+    paid_invoices = State()
+    total_margin = State()
+    total_revenue = State()
     nds = State()
 
 

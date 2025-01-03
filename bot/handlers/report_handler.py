@@ -1,24 +1,53 @@
+from decimal import Decimal, InvalidOperation
+
 from aiogram import Router, F
 from aiogram.types import Message, Chat
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.states.states_form import ReportState
-from bot.keyboards.inline import get_keyboard
-from bot.keyboards.inline_date import get_keyboard_date
-from bot.keyboards.reply import reply_keyboard_manager
-from bot.filters.admin_filter import IsSuperManager
-from reports.report import Report
-from bot.loader import db
+from states.states_form import ReportState
+from keyboards.inline import get_keyboard
+from keyboards.inline_date import get_keyboard_date
+from keyboards.reply import reply_keyboard_manager
+from filters.admin_filter import IsSuperManager
+from entities.report import ReportEnriry
 
 router = Router()
 
 data_for_report: dict = {}
 
 
+def validate_positive_number(value: str) -> int:
+    """
+    Валидация положительного целого числа
+    """
+    try:
+        number = int(value)
+        if number < 0:
+            ValueError("Число не может быть отрицательным")
+        return number
+    except ValueError:
+        raise ValueError("Введите корректное цело число")
+
+
+def validate_decimal(value: str) -> Decimal:
+    """
+    Валидация десятичного числа
+    """
+    try:
+        number = Decimal(value.replace(",", "."))
+        if number < 0:
+            raise ValueError("Число не может быть отрицательным")
+        return number
+    except InvalidOperation:
+        raise ValueError("Введите корректное число")
+
+
 @router.message(F.text == "📑 Сформировать отчёт")
-async def start_create_report(message: Message) -> None:
+async def start_create_report(message: Message, state: FSMContext) -> None:
+    # Очистка прошлого состояния
+    await state.clear()
 
     await message.answer(
         "Вы готовы начать формирвать сегодняшний отчет?",
@@ -27,28 +56,25 @@ async def start_create_report(message: Message) -> None:
 
 
 async def create_report(chat: Chat, state: FSMContext) -> None:
-    manager = db.get_manager_to_id(id=chat.id)
-    manager_name = manager[0][2]
-    await state.update_data(manager=manager_name)
-
+    await state.update_data(manager_tg_id=chat)
     await chat.bot.send_message(
         chat_id=chat.id, text="Введите количество обработанных запросов:"
     )
-    await state.set_state(ReportState.orders)
+    await state.set_state(ReportState.total_orders)
 
 
 @router.message(
-    StateFilter(ReportState.orders),
+    StateFilter(ReportState.total_orders),
     lambda x: x.text.isdigit() and 0 <= int(x.text),
 )
-async def get_orders(message: Message, state: FSMContext) -> None:
-    await state.update_data(orders=message.text)
+async def process_total_orders(message: Message, state: FSMContext) -> None:
+    await state.update_data(total_orders=message.text)
 
     await message.answer("Введите количество выставленных счетов:")
-    await state.set_state(ReportState.invoices)
+    await state.set_state(ReportState.total_invoices)
 
 
-@router.message(StateFilter(ReportState.orders))
+@router.message(StateFilter(ReportState.total_orders))
 async def orders_not_digit(message: Message) -> None:
     await message.answer(
         "⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n"
@@ -58,17 +84,17 @@ async def orders_not_digit(message: Message) -> None:
 
 
 @router.message(
-    StateFilter(ReportState.invoices),
+    StateFilter(ReportState.total_invoices),
     lambda x: x.text.isdigit() and 0 <= int(x.text),
 )
-async def get_invoices(message: Message, state: FSMContext) -> None:
-    await state.update_data(invoices=message.text)
+async def process_total_invoices(message: Message, state: FSMContext) -> None:
+    await state.update_data(total_invoices=message.text)
 
     await message.answer("Введите количество оплаченных заказов:")
-    await state.set_state(ReportState.paid)
+    await state.set_state(ReportState.paid_invoices)
 
 
-@router.message(StateFilter(ReportState.invoices))
+@router.message(StateFilter(ReportState.total_invoices))
 async def invoices_not_digit(message: Message) -> None:
     await message.answer(
         "⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n"
@@ -78,16 +104,17 @@ async def invoices_not_digit(message: Message) -> None:
 
 
 @router.message(
-    StateFilter(ReportState.paid), lambda x: x.text.isdigit() and 0 <= int(x.text)
+    StateFilter(ReportState.paid_invoices),
+    lambda x: x.text.isdigit() and 0 <= int(x.text),
 )
-async def get_payments(message: Message, state: FSMContext) -> None:
-    await state.update_data(paid=message.text)
+async def process_paid_invoices(message: Message, state: FSMContext) -> None:
+    await state.update_data(paid_invoices=message.text)
 
     await message.answer("Укажите маржу:")
-    await state.set_state(ReportState.margin)
+    await state.set_state(ReportState.total_margin)
 
 
-@router.message(StateFilter(ReportState.paid))
+@router.message(StateFilter(ReportState.paid_invoices))
 async def paid_not_digit(message: Message) -> None:
     await message.answer(
         "⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n"
@@ -97,18 +124,18 @@ async def paid_not_digit(message: Message) -> None:
 
 
 @router.message(
-    StateFilter(ReportState.margin),
+    StateFilter(ReportState.total_margin),
     lambda x: ("-" not in x.text)
     and (x.text.replace(".", "", 1).isdigit() or x.text.replace(",", "", 1).isdigit()),
 )
-async def get_margine(message: Message, state: FSMContext) -> None:
-    await state.update_data(margin=message.text.replace(",", ".", 1))
+async def process_total_margine(message: Message, state: FSMContext) -> None:
+    await state.update_data(total_margin=message.text.replace(",", ".", 1))
 
     await message.answer("Укажите полученную выручку:")
-    await state.set_state(ReportState.revenue)
+    await state.set_state(ReportState.total_revenue)
 
 
-@router.message(StateFilter(ReportState.margin))
+@router.message(StateFilter(ReportState.total_margin))
 async def margin_not_digit_and_not_less_zero(message: Message) -> None:
     await message.answer(
         "⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n"
@@ -118,12 +145,12 @@ async def margin_not_digit_and_not_less_zero(message: Message) -> None:
 
 
 @router.message(
-    StateFilter(ReportState.revenue),
+    StateFilter(ReportState.total_revenue),
     lambda x: ("-" not in x.text)
     and (x.text.replace(".", "", 1).isdigit() or x.text.replace(",", "", 1).isdigit()),
 )
-async def get_revenue(message: Message, state: FSMContext) -> None:
-    await state.update_data(revenue=message.text.replace(",", ".", 1))
+async def process_total_revenue(message: Message, state: FSMContext) -> None:
+    await state.update_data(total_revenue=message.text.replace(",", ".", 1))
 
     await message.answer(
         "Рассчеты принимаемс с НДС равным 1.2?", reply_markup=get_keyboard(key="nds")
@@ -131,7 +158,7 @@ async def get_revenue(message: Message, state: FSMContext) -> None:
     await state.set_state(ReportState.nds)
 
 
-@router.message(StateFilter(ReportState.revenue))
+@router.message(StateFilter(ReportState.total_revenue))
 async def revenue_not_digit_and_not_less_zero(message: Message) -> None:
     await message.answer(
         "⛔️ Внимание! ⛔️\n Указан неверный формат данных!\n"
@@ -141,7 +168,7 @@ async def revenue_not_digit_and_not_less_zero(message: Message) -> None:
 
 
 @router.message(ReportState.nds, F.text)
-async def get_nds(message: Message, state: FSMContext) -> None:
+async def process_nds(message: Message, state: FSMContext) -> None:
     await state.update_data(nds=message.text)
 
     await check_report_is_correct(message, state)
@@ -168,18 +195,18 @@ async def check_report_is_correct(chat: Chat, state: FSMContext) -> None:
 
 
 async def save_report(chat: Chat) -> None:
-    report = Report(**data_for_report)
+    global data_for_report
+
+    report = ReportEnriry.create(**data_for_report)
     report.id = chat.id
     # Сохранение отчета в базу данных
-    manager = db.get_manager_to_id(chat.id)
-    db.add_report_to_db(report=report)
 
     text = """
     ✅ Отлично, ваш отчет успешно сохранен!
     Он добавлен в базу данных для формирования недельного отчета"""
 
     await chat.bot.send_message(
-        chat_id=chat.id, text=text, reply_markup=reply_keyboard_manager(manager[0][0])
+        chat_id=chat.id, text=text, reply_markup=reply_keyboard_manager()
     )
 
 

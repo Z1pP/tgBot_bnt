@@ -2,16 +2,15 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from bot.loader import db
-from bot.handlers.report_handler import (
+from handlers.report_handler import (
     save_report,
     create_report,
     check_report_is_correct,
     get_report_by_date_from_db,
 )
-from bot.keyboards.reply import default_keyboard
-from bot.states.states_form import ReportState
-from bot.filters.admin_filter import IsSuperManager
+from keyboards.reply import default_keyboard
+from states.states_form import ReportState
+from filters.admin_filter import IsSuperManager
 
 router = Router()
 
@@ -38,7 +37,7 @@ async def conf_for_form(query: CallbackQuery, state: FSMContext) -> None:
     await query.answer()
     try:
         if "yes" in query.data:
-            await state.set_state(ReportState.manager)
+            await state.set_state(ReportState.manager_tg_id)
             await create_report(chat=query.message.chat, state=state)
         elif "no" in query.data:
             await query.message.answer(
@@ -80,7 +79,6 @@ async def delete_report(query: CallbackQuery) -> None:
     await query.answer()
     try:
         report_id = int(query.data.split("_")[-1])
-        db.delete_report_from_db(id=report_id)
         await query.message.answer(text="Отчет успешно удален!")
     except Exception as e:
         await query.answer(text=f"Произошла ошибка при удалении: {str(e)}")

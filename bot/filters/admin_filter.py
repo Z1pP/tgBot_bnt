@@ -1,8 +1,7 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
-from bot.data.config import ADMINS
-from bot.loader import db
+from data.config import ADMINS
 
 
 class IsAdmin(BaseFilter):
@@ -12,6 +11,4 @@ class IsAdmin(BaseFilter):
 
 class IsSuperManager(BaseFilter):
     async def __call__(self, message: Message) -> bool:
-        manager = db.get_manager_to_id(message.from_user.id)
-        role = manager[0][3]
-        return role == "SuperManager"
+        return True

@@ -1,68 +1,55 @@
 import asyncio
-import logging
+import sys
 
-from loader import dp, bot
-from handlers import (
+from bot.loader import create_bot_dispatcher
+from bot.utils.logger import bot_logger
+
+# Импорт всех необходимых хэндлеров
+from bot.handlers import (
     basic_handler,
     report_handler,
-    excel_handler,
-    admin_handler,
-)
-from callbacks import report_callback, excel_callback, admin_callback
-from utils import commands
-from services import check_connection
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("bot.log"), logging.StreamHandler()],
+    # Добавьте другие импорты handlers
 )
 
-logger = logging.getLogger("bot")
-
-
-async def initialize_bot():
-    logger.info("Проверка API")
-    api_alive = await check_connection()
-    if api_alive is False:
-        logger.error("API недоступно. Бот не будет запущен.")
-        return
-
-    logger.info("Запуск бота")
-
-    dp.include_routers(
-        basic_handler.router,
-        report_handler.router,
-        excel_handler.router,
-        admin_handler.router,
-        report_callback.router,
-        admin_callback.router,
-        excel_callback.router,
-    )
-
-    await commands.set_commands(bot)
-    logger.info("Команды бота установлены")
-
-
-async def start_polling():
-    try:
-        logger.info("Старт пулинга")
-        await dp.start_polling(bot)
-    except Exception as e:
-        logger.error(f"Произошла ошибка при запуске бота: {e}")
-
-
-async def close_bot_sessions():
-    logger.info("Закрытие сессии бота")
-    await bot.session.close()
-    await dp.storage.close()
+# Импорт всех необходимых коллбэков
+from bot.callbacks import (
+    report_callback,
+    # Добавьте другие импорты callbacks
+)
 
 
 async def main():
-    await initialize_bot()
-    await start_polling()
-    await close_bot_sessions()
+    """
+    Основная точка входа для запуска бота
+    """
+    bot, dp = create_bot_dispatcher()
+
+    # Регистрация роутеров
+    dp.include_routers(
+        basic_handler.router,
+        report_handler.router,
+        report_callback.router,
+        # Добавьте другие роутеры
+    )
+
+    # Логирование старта
+    bot_logger.info("Бот запускается...")
+
+    try:
+        # Удаление вебхуков и старта поллинга
+        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+    except Exception as e:
+        bot_logger.error(f"Ошибка при запуске бота: {e}", exc_info=True)
+        sys.exit(1)
+    finally:
+        await dp.storage.close()
+        await bot.session.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        bot_logger.info("Бот остановлен пользователем")
+    except Exception as e:
+        bot_logger.error(f"Критическая ошибка: {e}", exc_info=True)

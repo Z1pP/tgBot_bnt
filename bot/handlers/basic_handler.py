@@ -7,21 +7,24 @@ from aiogram.fsm.context import FSMContext
 from keyboards.reply import reply_keyboard_manager, default_keyboard
 from states.states_form import Registration, ChangeName
 from data.config import BASE_URL
+from enums import Endpoints
 from services.manager_api_service import ManagerApiService
-from dto.manager import ManagerDTO
+from entities.manager import ManagerEntity
 
 router = Router()
 
 
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext) -> None:
-    service = ManagerApiService(base_url=BASE_URL, endpoint="managers")
-    tg_id = message.from_user.id
-    manager: Optional[ManagerDTO] = await service.get_manager_by_id(id=tg_id)
+    service = ManagerApiService(base_url=BASE_URL, endpoint=Endpoints.MANAGERS.value)
+
+    manager: Optional[ManagerEntity] = await service.get_manager_by_id(
+        id=message.from_user.id
+    )
 
     if manager:
         await message.answer(
-            f"Привет {manager.username}, я бот для отчетов.\n"
+            f"Привет {manager.name}, я бот для отчетов.\n"
             + 'Для начала работы нажми внизу "Начать работу" ',
             reply_markup=default_keyboard,
         )
@@ -37,13 +40,12 @@ async def start(message: Message, state: FSMContext) -> None:
 @router.message(F.text == "Начать работу")
 async def work_menu(message: Message) -> None:
     service = ManagerApiService(base_url=BASE_URL, endpoint="managers")
-    tg_id = message.from_user.id
 
-    manager = await service.get_manager_by_id(id=tg_id)
+    manager = await service.get_manager_by_id(id=message.from_user.id)
 
     await message.answer(
-        f"Отлично {manager["name"]}, теперь я готов к работе!",
-        reply_markup=reply_keyboard_manager(manager["role"]),
+        f"Отлично {manager.name}, теперь я готов к работе!",
+        reply_markup=reply_keyboard_manager(manager.role),
     )
 
 
@@ -87,12 +89,11 @@ async def change_manager_name(message: Message, state: FSMContext) -> None:
 async def registration(message: Message, state: FSMContext) -> None:
     await state.clear()
 
-    service = ManagerApiService(base_url=BASE_URL, endpoint="managers")
-    tg_id = message.from_user.id
+    service = ManagerApiService(base_url=BASE_URL, endpoint=Endpoints.MANAGERS.value)
 
     register_name = message.text.strip().capitalize()
     upload_data = {
-        "tg_id": tg_id,
+        "tg_id": message.from_user.id,
         "username": message.from_user.first_name,
         "name": register_name,
     }
@@ -101,7 +102,7 @@ async def registration(message: Message, state: FSMContext) -> None:
 
     if manager:
         await message.answer(
-            f"Привет {manager["name"]}, я бот для отчетов.\n"
+            f"Привет {manager.name}, я бот для отчетов.\n"
             + 'Для начала работы нажми внизу "Начать работу" ',
             reply_markup=default_keyboard,
         )
