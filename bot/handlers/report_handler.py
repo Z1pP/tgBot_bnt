@@ -12,6 +12,7 @@ from keyboards.inline_date import get_keyboard_date
 from keyboards.reply import reply_keyboard_manager
 from filters.admin_filter import IsSuperManager
 from entities.report import ReportEnriry
+from enums import KeyboardKeys
 
 router = Router()
 
@@ -51,7 +52,7 @@ async def start_create_report(message: Message, state: FSMContext) -> None:
 
     await message.answer(
         "Вы готовы начать формирвать сегодняшний отчет?",
-        reply_markup=get_keyboard(key="filling_form"),
+        reply_markup=get_keyboard(key=KeyboardKeys.FILING_FORM),
     )
 
 
