@@ -21,7 +21,7 @@ async def check_report_on_correct(query: CallbackQuery, state: FSMContext) -> No
     await query.answer()
     try:
         if "yes" in query.data:
-            await save_report(chat=query.message.chat)
+            await save_report(chat=query.message.chat, state=state)
         elif "no" in query.data:
             await query.message.answer(
                 text="Заполните форму заново!", reply_markup=default_keyboard
