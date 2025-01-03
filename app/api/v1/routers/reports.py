@@ -20,7 +20,7 @@ async def get_reports(
     manager_id: int,
     service: IReportsService = Depends(get_reports_service),
 ):
-    return await service.get_reports_by_tg_id(tg_id=manager_id)
+    return await service.get_reports_by_manager(manager_id)
 
 
 @router.post(
