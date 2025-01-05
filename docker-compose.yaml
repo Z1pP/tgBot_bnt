@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/backend/app
+      - ./alembic:/backend/alembic
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./test2.db
+
+  bot:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.bot
+    volumes:
+      - ./bot:/bot
+    depends_on:
+      - backend
+    environment:
+      - API_URL=http://0.0.0.0:8000
+      - TOKEN=${TOKEN}
+
+volumes:
+  database:
+    driver: local
