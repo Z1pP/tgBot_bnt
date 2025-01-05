@@ -1,8 +1,10 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
+from app.core.config import setting
 
-DATABASE_URL = "sqlite+aiosqlite:///./test2.db"
+
+DATABASE_URL = f"sqlite+aiosqlite:///./{setting.DB_NAME}"
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 

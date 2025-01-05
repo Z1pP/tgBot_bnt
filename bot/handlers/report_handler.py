@@ -6,14 +6,14 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.states.states_form import ReportState
-from bot.keyboards.inline import get_keyboard
-from bot.keyboards.inline_date import get_keyboard_date
-from bot.keyboards.reply import reply_keyboard_manager
-from bot.filters.admin_filter import IsSuperManager
-from bot.data.config import BASE_URL
-from bot.enums import KeyboardKeys, Endpoints
-from bot.services.report_api_service import ReportApiService
+from states.states_form import ReportState
+from keyboards.inline import get_keyboard
+from keyboards.inline_date import get_keyboard_date
+from keyboards.reply import reply_keyboard_manager
+from filters.admin_filter import IsSuperManager
+from core.config import setting
+from enums import KeyboardKeys, Endpoints
+from services.report_api_service import ReportApiService
 
 router = Router()
 
@@ -202,7 +202,9 @@ async def check_report_is_correct(chat: Chat, state: FSMContext) -> None:
 async def save_report(chat: Chat, state: FSMContext) -> None:
     # Сохранение отчета в базу данных
 
-    api_service = ReportApiService(base_url=BASE_URL, endpoint=Endpoints.REPORTS.value)
+    api_service = ReportApiService(
+        base_url=setting.API_URL, endpoint=Endpoints.REPORTS.value
+    )
     created_report = await api_service.create_report(data=await state.get_data())
 
     text = """

@@ -7,8 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1 import base_router as api_router
-from app.database.config import engine
-from app.models.base import Base
+from app.core.config import setting
 
 
 logging.basicConfig(
@@ -57,5 +56,14 @@ async def health_check() -> dict[str, Any]:
         )
 
 
+def main():
+    try:
+        logger.info("Апишечка стартанула")
+        uvicorn.run(app, host=setting.API_HOST, port=setting.API_PORT)
+    except Exception as e:
+        logger.error(f"Ошибка при запуске апишки: {e}")
+        raise
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    main()

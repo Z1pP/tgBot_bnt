@@ -1,9 +1,11 @@
 import aiohttp
 import aiohttp.client_exceptions
 
+from core.config import setting
+
 
 async def check_connection() -> bool:
-    url = "http://0.0.0.0:8000/api/health"
+    url = f"{setting.API_URL}/health"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:

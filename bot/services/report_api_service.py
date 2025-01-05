@@ -1,7 +1,7 @@
 from typing import Optional
 import aiohttp
 
-from bot.entities.report import ReportEnriry
+from entities.report import ReportEnriry
 
 
 class ReportApiService:

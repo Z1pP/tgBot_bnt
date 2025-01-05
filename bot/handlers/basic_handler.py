@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 
 from keyboards.reply import reply_keyboard_manager, default_keyboard
 from states.states_form import Registration, ChangeName
-from data.config import BASE_URL
+from core.config import setting
 from enums import Endpoints
 from services.manager_api_service import ManagerApiService
 from entities.manager import ManagerEntity
@@ -16,7 +16,9 @@ router = Router()
 
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext) -> None:
-    service = ManagerApiService(base_url=BASE_URL, endpoint=Endpoints.MANAGERS.value)
+    service = ManagerApiService(
+        base_url=setting.API_URL, endpoint=Endpoints.MANAGERS.value
+    )
 
     manager: Optional[ManagerEntity] = await service.get_manager_by_id(
         id=message.from_user.id
@@ -39,7 +41,7 @@ async def start(message: Message, state: FSMContext) -> None:
 
 @router.message(F.text == "Начать работу")
 async def work_menu(message: Message) -> None:
-    service = ManagerApiService(base_url=BASE_URL, endpoint="managers")
+    service = ManagerApiService(base_url=setting.API_URL, endpoint="managers")
 
     manager = await service.get_manager_by_id(id=message.from_user.id)
 
@@ -62,14 +64,14 @@ async def change_name(message: Message, state: FSMContext) -> None:
 async def change_manager_name(message: Message, state: FSMContext) -> None:
     await state.clear()
 
-    service = ManagerApiService(base_url=BASE_URL, endpoint="managers")
+    service = ManagerApiService(base_url=setting.API_URL, endpoint="managers")
     tg_id = message.from_user.id
 
     updated_name = message.text.strip().capitalize()
     upload_data = {"name": updated_name}
 
     try:
-        manager = await service.update_manager_name(id=tg_id, data=upload_data)
+        manager = await service.update_manager(id=tg_id, data=upload_data)
         await message.answer(
             f"{manager["name"]}, имя успешно измененно!",
             reply_markup=default_keyboard,
@@ -89,7 +91,9 @@ async def change_manager_name(message: Message, state: FSMContext) -> None:
 async def registration(message: Message, state: FSMContext) -> None:
     await state.clear()
 
-    service = ManagerApiService(base_url=BASE_URL, endpoint=Endpoints.MANAGERS.value)
+    service = ManagerApiService(
+        base_url=setting.API_URL, endpoint=Endpoints.MANAGERS.value
+    )
 
     register_name = message.text.strip().capitalize()
     upload_data = {
