@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Sequence, Optional
 
-from app.models.manager_models import Role
 from app.schemas.manager_schemas import ManagerSchema
-from app.schemas.report_schemas import ReportSchemaInput, ReportSchemaOutput
+from app.schemas.report_schemas import (
+    ReportSchemaInput,
+    ReportSchemaOutput,
+    ReportSchemaUpdate,
+)
 
 
 class IManagersService(ABC):
@@ -39,4 +42,14 @@ class IReportsService(ABC):
 
     @abstractmethod
     async def create_report(self, report: ReportSchemaInput) -> ReportSchemaOutput:
+        pass
+
+    @abstractmethod
+    async def update_report(
+        self, report_id: int, report: ReportSchemaUpdate
+    ) -> ReportSchemaOutput:
+        pass
+
+    @abstractmethod
+    async def delete_report(self, report_id: int, manager_tg_id: int) -> None:
         pass

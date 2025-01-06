@@ -13,7 +13,17 @@ class ReportSchemaInput(BaseModel):
     paid_invoices: int
     total_margin: Decimal
     total_revenue: Decimal
-    nds: Decimal | None = Decimal("1.2")
+    nds: Optional[Decimal] = Decimal("1.2")
+
+
+class ReportSchemaUpdate(BaseModel):
+    manager_tg_id: int
+    total_orders: Optional[int] = None
+    total_invoices: Optional[int] = None
+    paid_invoices: Optional[int] = None
+    total_margin: Optional[Decimal] = None
+    total_revenue: Optional[Decimal] = None
+    nds: Optional[Decimal] = None
 
 
 class ReportSchemaOutput(ReportSchemaInput):

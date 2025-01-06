@@ -1,14 +1,13 @@
-from typing import Any
-import uvicorn
 import logging
+from typing import Any
 
+import uvicorn
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1 import base_router as api_router
 from app.core.config import setting
-
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
