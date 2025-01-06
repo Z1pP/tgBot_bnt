@@ -1,18 +1,17 @@
-from datetime import datetime
 from typing import TYPE_CHECKING
 from decimal import Decimal
 
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import func, DateTime, Integer, ForeignKey
+from sqlalchemy import Integer, ForeignKey
 from sqlalchemy.types import DECIMAL
 
-from app.models.base import Base
+from app.models.base import DateFeild
 
 if TYPE_CHECKING:
     from app.models.manager_models import Manager
 
 
-class Report(Base):
+class Report(DateFeild):
     __tablename__ = "reports"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -48,17 +47,6 @@ class Report(Base):
     )
     markup_percentage: Mapped[Decimal] = mapped_column(
         DECIMAL(precision=5, scale=2), nullable=True
-    )
-
-    # Временные метки
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), insert_default=func.now(), nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        insert_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
     )
 
     # Связь с менеджером

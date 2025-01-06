@@ -37,6 +37,8 @@ class ReportRepository:
             self._session.add(report_model)
             await self._session.commit()
             await self._session.refresh(report_model)
+
+            return report_model
         except IntegrityError:
             raise ReportAlreadyExistsException(report_dto.id)
 
