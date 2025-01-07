@@ -15,17 +15,15 @@ class IManagersService(ABC):
         pass
 
     @abstractmethod
-    async def get_by_tg_id(self, tg_id: int) -> Optional[ManagerSchema]:
+    async def get_by_tg_id(self, tg_id: int) -> ManagerSchema:
         pass
 
     @abstractmethod
-    async def create_manager(self, schema: ManagerSchema) -> Optional[ManagerSchema]:
+    async def create_manager(self, schema: ManagerSchema) -> ManagerSchema:
         pass
 
     @abstractmethod
-    async def update_by_tg_id(
-        self, tg_id: int, updated_data: dict
-    ) -> Optional[ManagerSchema]:
+    async def update_by_tg_id(self, tg_id: int, updated_data: dict) -> ManagerSchema:
         pass
 
     @abstractmethod
