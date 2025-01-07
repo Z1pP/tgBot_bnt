@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1 import base_router as api_router
 from app.core.config import setting
+from app.exceptions.base import AppException
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -38,6 +39,13 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request, exc: AppException):
+    return JSONResponse(
+        status_code=exc.status_code, content={"status": "error", "message": exc.message}
+    )
 
 
 @app.get("/health", operation_id="health_status", tags=["Health"])
