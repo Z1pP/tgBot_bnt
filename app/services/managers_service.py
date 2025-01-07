@@ -1,6 +1,9 @@
-from typing import Optional, Sequence
+from typing import Sequence
 
-from app.dtos.manager_dto import ManagerDTO
+from app.exceptions.repository import (
+    EntityNotFoundException,
+    EntityAlreadyExistsException,
+)
 from app.repositories.manager_repository import ManagerRepository
 from app.schemas.manager_schemas import ManagerSchema
 from app.services.base import IManagersService
@@ -11,46 +14,51 @@ class ManagersService(IManagersService):
         self._repository = repository
 
     async def get_managers(self) -> Sequence[ManagerSchema]:
-        """
-        Получить список всех менеджеров
-        """
-        managers_dtos = await self._repository.get_all()
-        return [ManagerSchema.from_dto(dto) for dto in managers_dtos]
+        """Получить список всех менеджеров"""
+        manager_models = await self._repository.get_all()
 
-    async def get_by_tg_id(self, tg_id: int) -> Optional[ManagerSchema]:
-        """
-        Получение менеджера по его телеграмм ИД
-        """
-        manager_dto = await self._repository.get_by_tg_id(tg_id)
+        return [ManagerSchema.from_model(model) for model in manager_models]
 
-        if manager_dto:
-            return ManagerSchema.from_dto(manager_dto)
-        return None
+    async def get_by_tg_id(self, tg_id: int) -> ManagerSchema:
+        """Получение менеджера по его телеграмм ИД"""
+        manager_model = await self._repository.get_by_tg_id(tg_id)
+        if not manager_model:
+            raise EntityNotFoundException(entity="Manager", entity_id=tg_id)
 
-    async def create_manager(self, schema: ManagerSchema) -> Optional[ManagerSchema]:
-        """
-        Создание нового менеджера
-        """
-        created_manager_dto = await self._repository.create(
-            ManagerDTO.create(**schema.model_dump(exclude_unset=True))
+        return ManagerSchema.from_model(manager_model)
+
+    async def create_manager(self, schema: ManagerSchema) -> ManagerSchema:
+        """Создание нового менеджера"""
+        existing_model = await self._repository.get_by_tg_id(tg_id=schema.tg_id)
+
+        if existing_model:
+            raise EntityAlreadyExistsException(entity="Manager", entity_id=schema.tg_id)
+
+        manager_model = await self._repository.create(
+            data=schema.model_dump(exclude_unset=True)
         )
 
-        return ManagerSchema.from_dto(created_manager_dto)
+        return ManagerSchema.from_model(manager_model)
 
-    async def update_by_tg_id(
-        self, tg_id: int, updated_data: dict
-    ) -> Optional[ManagerSchema]:
+    async def update_by_tg_id(self, tg_id: int, updated_data: dict) -> ManagerSchema:
         """
         Универсальный метод обновления менеджера
         """
-        updated_manager = await self._repository.change_by_id(
-            tg_id, params=updated_data
+        # TODO: запилить валидацию
+
+        manager_model = await self.get_by_tg_id(tg_id=tg_id)
+        if not manager_model:
+            raise EntityNotFoundException(entity="Manager", entity_id=tg_id)
+
+        manager_model = await self._repository.update(
+            manager_model, updated_data=updated_data
         )
 
-        return ManagerSchema.from_dto(updated_manager) if updated_manager else None
+        return ManagerSchema.from_model(manager_model)
 
     async def delete_manager(self, tg_id: int) -> None:
-        """
-        Удаляем менеджера
-        """
-        await self._repository.delete(tg_id)
+        """Удаляем менеджера"""
+        manager_model = await self._repository.get_by_tg_id(tg_id=tg_id)
+        if not manager_model:
+            raise EntityNotFoundException(entity="Manager", entity_id=tg_id)
+        await self._repository.delete(model=manager_model)
