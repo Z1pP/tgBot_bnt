@@ -1,66 +1,60 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Sequence, Optional
 
-from sqlalchemy import select, and_, delete, update
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dtos.report_dto import ReportDTO
 from app.models.report_models import Report
-from app.repositories.exceptions import (
-    ReportNotFoundException,
-    ReportAlreadyExistsException,
-)
+from app.exceptions.database import DatabaseOperationException
 
 
 class ReportRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def create(self, report_dto: ReportDTO) -> ReportDTO:
+    async def create(self, data: dict) -> Report:
         """
         Создание нового отчета.
         """
-        report_model = Report(
-            manager_tg_id=report_dto.manager_tg_id,
-            total_orders=report_dto.total_orders,
-            total_invoices=report_dto.total_invoices,
-            paid_invoices=report_dto.paid_invoices,
-            total_margin=report_dto.total_margin,
-            total_revenue=report_dto.total_revenue,
-            conversion_rate=report_dto.conversion_rate,
-            paid_conversion_rate=report_dto.paid_conversion_rate,
-            markup_percentage=report_dto.markup_percentage,
-        )
-
         try:
+            report_model = Report(**data)
+
             self._session.add(report_model)
             await self._session.commit()
             await self._session.refresh(report_model)
 
             return report_model
-        except IntegrityError:
-            raise ReportAlreadyExistsException(report_dto.id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="Create",
+                entity=Report.__name__,
+                details=f"Failed to create report: {str(e)}",
+            )
 
-    async def get_by_id(self, report_id: int) -> Optional[ReportDTO]:
+    async def get_by_id(self, report_id: int) -> Optional[Report]:
         """
         Получение отчета по его ИД
         """
-        query = select(Report).where(Report.id == report_id)
-        result = await self._session.execute(query)
-        report_model = result.scalar_one_or_none()
-
-        if not report_model:
-            raise ReportNotFoundException(report_id)
-
-        return ReportDTO.from_model(report_model)
+        try:
+            result = await self._session.execute(
+                select(Report).where(Report.id == report_id)
+            )
+            return result.scalar_one_or_none()
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="Get_by_id",
+                entity=Report.__name__,
+                details=f"Failed to getting report by his ID: {str(e)}",
+            )
 
     async def get_by_manager_id(
         self,
         manager_tg_id: int,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
-    ) -> List[ReportDTO]:
+    ) -> Sequence[Report]:
+        """Получаем список отчетов для менеджера в период даты"""
         query = select(Report).where(Report.manager_tg_id == manager_tg_id)
 
         if start_date:
@@ -68,33 +62,49 @@ class ReportRepository:
         if end_date:
             query = query.where(Report.created_at <= end_date)
 
-        result = await self._session.execute(query)
-        return list(result.scalars().all())
+        try:
+            result = await self._session.execute(query)
+            return result.scalars().all()
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="Get_by_manager_id",
+                entity=Report.__name__,
+                details=f"Failed to getting report by manager ID: {str(e)}",
+            )
 
-    async def update(self, report_id: int, **kwargs) -> Optional[ReportDTO]:
+    async def update(self, model: Report, updated_data: dict) -> Report:
         """Обновляем отчет"""
-        query = (
-            update(Report)
-            .where(Report.id == report_id)
-            .values(**kwargs)
-            .returning(Report)
-        )
-        result = await self._session.execute(query)
-        report_model = result.scalar_one_or_none()
+        try:
+            for key, value in updated_data.items():
+                if hasattr(model, key):
+                    setattr(model, key, value)
 
-        if not report_model:
-            raise ReportNotFoundException(report_id)
+            await self._session.commit()
+            await self._session.refresh(model)
 
-        return ReportDTO.from_model(report_model)
+            return model
+        except Exception as e:
+            await self._session.rollback()
+            raise DatabaseOperationException(
+                operation="Update",
+                entity=Report.__name__,
+                details=f"Failed to update report (ID: {model.id}): {str(e)}",
+            )
 
-    async def delete(self, report_id: int) -> bool:
-        """Удалить репорт по его ИД"""
-        query = delete(Report).where(Report.id == report_id)
-        result = await self._session.execute(query)
-        await self._session.commit()
-        return result.rowcount > 0
+    async def delete(self, model: Report) -> None:
+        """Удаление отчета"""
+        try:
+            await self._session.delete(model)
+            await self._session.commit()
+        except Exception as e:
+            await self._session.rollback()
+            raise DatabaseOperationException(
+                operation="Delete",
+                entity=Report.__name__,
+                details=f"Failed to delete report (ID: {model.id}): {str(e)}",
+            )
 
-    async def get_latest_report(self, manager_tg_id: int) -> Optional[ReportDTO]:
+    async def get_latest_report(self, manager_tg_id: int) -> Optional[Report]:
         """Получить последний репорт менеджера"""
         query = (
             select(Report)
@@ -109,7 +119,7 @@ class ReportRepository:
         manager_tg_id: int,
         start_date: datetime,
         end_date: datetime,
-    ) -> List[Report]:
+    ) -> Sequence[Report]:
         query = select(Report).where(
             and_(
                 Report.manager_tg_id == manager_tg_id,
@@ -120,8 +130,8 @@ class ReportRepository:
         result = await self._session.execute(query)
         return list(result.scalars().all())
 
-    async def get_all_reports(self) -> List[ReportDTO]:
+    async def get_all_reports(self) -> Sequence[Report]:
         """Получить все репорты"""
         query = select(Report)
         result = await self._session.execute(query)
-        return list(result.scalars().all())
+        return result.scalars().all()
