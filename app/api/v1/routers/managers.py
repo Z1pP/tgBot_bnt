@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from typing import List
 
 from app.services.base import IManagersService
+from app.schemas import APIResponse
 from app.schemas.manager_schemas import ManagerSchema, ManagerUpdateSchema
 from app.dependencies import get_manager_service
 
@@ -13,7 +14,7 @@ router = APIRouter(
 
 @router.get(
     "/",
-    response_model=List[ManagerSchema],
+    response_model=APIResponse[List[ManagerSchema]],
     operation_id="readManagers",
     status_code=status.HTTP_200_OK,
 )
@@ -21,7 +22,8 @@ async def read_managers(service: IManagersService = Depends(get_manager_service)
     """
     Получить список всех менеджеров.
     """
-    return await service.get_managers()
+    managers = await service.get_managers()
+    return APIResponse(data=managers, total_count=len(managers))
 
 
 @router.get(

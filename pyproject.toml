@@ -33,6 +33,8 @@ aiosqlite = "^0.20.0"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
 alembic = "^1.14.0"
 redis = "^5.2.1"
+pytz = "^2024.2"
+mypy = "^1.14.1"
 
 
 [build-system]

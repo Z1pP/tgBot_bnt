@@ -4,7 +4,7 @@ from typing import Optional, TYPE_CHECKING
 from sqlalchemy import String, Enum as SQLAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base
+from app.models.base import DateFeild
 
 if TYPE_CHECKING:
     from app.models.report_models import Report
@@ -16,7 +16,7 @@ class Role(str, Enum):
     ADMIN = "Admin"
 
 
-class Manager(Base):
+class Manager(DateFeild):
     __tablename__ = "managers"
 
     tg_id: Mapped[int] = mapped_column(primary_key=True, unique=True, nullable=False)
