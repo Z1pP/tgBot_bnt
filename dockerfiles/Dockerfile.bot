@@ -1,14 +1,29 @@
-FROM python:3.12-slim
+FROM python:3.10-slim
 
-WORKDIR /bot
+WORKDIR /app
 
-COPY requirements.txt .
+# Установка Poetry
+RUN pip install poetry
 
-RUN pip install -r requirements.txt
+# Копирование файлов зависимостей
+COPY telegram_bot/pyproject.toml telegram_bot/poetry.lock ./
 
-COPY ./bot .
-COPY .env .
+# Установка зависимостей
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi
 
-ENV PYTHONPATH=/bot
+# Копирование кода приложения
+COPY telegram_bot/bot ./bot
 
-CMD ["python", "main.py"]
+# Создание директории для отчетов
+RUN mkdir -p folder_to_reports && \
+    mkdir -p logs
+
+# Создание пользователя без прав root
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app/folder_to_reports && \
+    chown -R appuser:appuser /app/logs
+USER appuser
+
+# Команда запуска
+CMD ["poetry", "run", "python", "-m", "bot"]

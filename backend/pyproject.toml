@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "bnt-backend"
+version = "0.1.0"
+description = "Backend API for BNT Project"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.5"
+uvicorn = "^0.32.1"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
+aiosqlite = "^0.20.0"
+alembic = "^1.14.0"
+pydantic = "^2.8.2"
+python-dotenv = "^1.0.1"
+pytz = "^2024.2"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+mypy = "^1.14.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api" 
