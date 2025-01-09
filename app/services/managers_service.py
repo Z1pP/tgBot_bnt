@@ -44,9 +44,8 @@ class ManagersService(IManagersService):
         """
         Универсальный метод обновления менеджера
         """
-        # TODO: запилить валидацию
+        manager_model = await self._repository.get_by_tg_id(tg_id=tg_id)
 
-        manager_model = await self.get_by_tg_id(tg_id=tg_id)
         if not manager_model:
             raise EntityNotFoundException(entity="Manager", entity_id=tg_id)
 
