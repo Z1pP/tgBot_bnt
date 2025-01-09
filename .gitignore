@@ -1,38 +1,50 @@
-# Ignore Python bytecode
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Ignore virtual environments
-venv
-venv/
-env/
-ENV/
-.venv/
-.pyenv/
 .Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Virtual environments
 .env
-
-# Ignore SQLite database files
-*.sqlite
-*.sqlite3
-*.db
-*.db3
-
-# Ignore other folders
-folder_to_reports
+.venv
+env/
+venv/
+ENV/
 
 # IDE
-.vscode
-.idea
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# logs
+# Logs
+logs/
 *.log
 
-# Alembic migrations
-alembic/versions/*
-!alembic/versions/.gitkeep
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-*.txt
+# Project specific
+backend/alembic/versions/*
+!backend/alembic/versions/.gitkeep
+telegram_bot/folder_to_reports/
 
-.mypy_cache/
+# Dependencies
+backend/.venv/
+telegram_bot/.venv/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Environment variables
+backend/.env
+telegram_bot/.env
